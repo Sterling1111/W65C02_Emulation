@@ -1,0 +1,10 @@
+#ifndef _65C02_SYSTEM_EMULATION_LCD_H
+#define _65C02_SYSTEM_EMULATION_LCD_H
+
+
+class LCD {
+
+};
+
+
+#endif //_65C02_SYSTEM_EMULATION_LCD_H
