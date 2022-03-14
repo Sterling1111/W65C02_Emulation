@@ -17,6 +17,7 @@ FetchContent_MakeAvailable(googletest)
 set  (6502_TEST_SOURCES
         "LoadRegisterTests.cpp"
         "StoreRegisterTests.cpp"
+        "JumpsAndCallsTests.cpp"
         "main.cpp")
 
 add_executable( SystemTest ${6502_TEST_SOURCES} 	)

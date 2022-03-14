@@ -49,41 +49,52 @@ public:
     word SPToAddress(bool incrementSP=false);
     byte pullByteFromStack(bool incSPBefore = false, bool incSPAfter = false);
 
-    //read instructions which return the byte read from the bus for the given address mode
-    word rAddrIM();     //Immediate-#
-    word rAddrAbs();    //Absolute-a
-    word rAddrZP();     //Zero Page-zp
-    word rAddrAcm();    //Accumulator-A
-    word rAddrImp();    //Implied-i
-    word rAddrIndY();   //Zero Page Indirect Indexed-(zp),Y
-    word rAddrXInd();   //Zero Page Indexed Indirect-(zp,X)
-    word rAddrZPX();    //Zero Page Indexed With X-zp,X
-    word rAddrZPY();    //Zerp Page Indexed With Y-zp,Y
-    word rAddrAbsX();   //Absolute Indexed With X-a,X
-    word rAddrAbsY();   //Absolute Indexed With Y-a,Y
-    word rAddrPcr();    //Program Counter Relative-r
-    word rAddrAInd();   //Absolute Indirect-(a)
-    word rAddrS();      //Stack-s
-    word rAddrAIndX();  //Absolute Indexed Indirect-(a,x)
-    word rAddrZPInd();  //Zero Page Indirect-(zp)
+    word immediate(word* = nullptr);
 
-    //write instructions which return the address in memory to write to for a given addressing mode.
-    word wAddrIM();     //Immediate-#
-    word wAddrZP();     //Zero Page-zp
-    word wAddrZPX();    //Zero Page Indexed With X-zp,X
-    word wAddrAbs();    //Absolute-a
-    word wAddrAcm();    //Accumulator-A
-    word wAddrImp();    //Implied-i
-    word wAddrAbsX();   //Absolute Indexed With X-a,X
-    word wAddrAbsY();   //Absolute Indexed With Y-a,Y
-    word wAddrZPY();    //Zerp Page Indexed With Y-zp,Y
-    word wAddrXInd();   //Zero Page Indexed Indirect-(zp,X)
-    word wAddrIndY();   //Zero Page Indirect Indexed-(zp),Y
-    word wAddrPcr();    //Program Counter Relative-r
-    word wAddrAInd();   //Absolute Indirect-(a)
-    word wAddrS();      //Stack-s
-    word wAddrAIndX();  //Absolute Indexed Indirect-(a,x)
-    word wAddrZPInd();  //Zero Page Indirect-(zp)
+    word absoluteA(word* = nullptr);
+    word absoluteB(word* = nullptr);
+    word absoluteC(word* = nullptr);
+    word absoluteD(word* = nullptr);
+
+    word zeroPageA(word* = nullptr);
+    word zeroPageB(word* = nullptr);
+    word zeroPageC(word* = nullptr);
+
+    word accumulator(word* = nullptr);
+
+    word impliedA(word* = nullptr);
+    word impliedB(word* = nullptr);
+    word impliedC(word* = nullptr);
+
+    word zeroPageIndirectIndexed(word* = nullptr);
+
+    word zeroPageIndexedIndirect(word* = nullptr);
+
+    word zeroPageXA(word* = nullptr);
+    word zeroPageXB(word* = nullptr);
+
+    word zeroPageY(word* = nullptr);
+
+    word absoluteXA(word* = nullptr);
+    word absoluteXB(word* = nullptr);
+
+    word absoluteY(word* = nullptr);
+
+    word relativeA(word* = nullptr);
+    word relativeB(word* = nullptr);
+
+    word absoluteIndirect(word* = nullptr);
+
+    word stackA(word* = nullptr);
+    word stackB(word* = nullptr);
+    word stackC(word* = nullptr);
+    word stackD(word* = nullptr);
+    word stackE(word* = nullptr);
+    word stackF(word* = nullptr);
+
+    word absoluteIndexedIndirect(word* = nullptr);
+
+    word zeroPageIndirect(word* = nullptr);
 
     void ADC(word (_65C02::* addrMode)());	void AND(word (_65C02::* addrMode)());	void ASL(word (_65C02::* addrMode)());	void BBR(word (_65C02::* addrMode)());
     void BBS(word (_65C02::* addrMode)());  void BCC(word (_65C02::* addrMode)());  void BCS(word (_65C02::* addrMode)());	void BEQ(word (_65C02::* addrMode)());
@@ -105,8 +116,8 @@ public:
     void TYA(word (_65C02::* addrMode)());  void WAI(word (_65C02::* addrMode)());  void XXX(word (_65C02::* addrMode)());
 
     struct Opcode {
-        void (_65C02::* instruction)(word (_65C02::* addrMode)());
-        word (_65C02::* addrMode)();
+        void (_65C02::* instruction)(word (_65C02::* addrMode)(word*));
+        word (_65C02::* addrMode)(word* data);
     };
 
     std::vector<Opcode> opCodeMatrix;
