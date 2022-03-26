@@ -13,12 +13,12 @@ public:
                     regMax{regMax}, eeprom{}, romMin{romMin}, romMax{romMax},
                     bus{cpu, ram, ramMin, ramMax, registers, regMin, regMax, eeprom, romMin, romMax}{}
 
-    void executeProgram(const std::string& programObjFile, uint64_t cycles = std::numeric_limits<uint64_t>::max(), bool logging = false, const std::string& outFile = "") {
+    void executeProgram(const std::string& programObjFile, uint64_t instructionsToExecute = std::numeric_limits<uint64_t>::max(), bool logging = false, const std::string& outFile = "") {
         eeprom.loadProgram(programObjFile);
         cpu.reset(cpu.readByte(0xFFFC) | (cpu.readByte(0xFFFD) << 8));
         bus.log = logging;
         if(!bus.openProgramOutFile(outFile)) { bus.log = false; }
-        cpu.execute(cycles);
+        cpu.execute(instructionsToExecute);
     }
 
     sdword ramMin{0x0000}, ramMax{0x3FFF}, regMin{0x6000}, regMax{0x7FFF}, romMin{0x8000}, romMax{0xFFFF};

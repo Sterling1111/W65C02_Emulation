@@ -83,7 +83,7 @@ TEST_F(JumpsAndCallsTests, JMPIndirectCanJumpToANewAddress) {
     ram[0x0120] = 0xFC;
     ram[0x0121] = 0xBA;
     auto psCopy = cpu.PS;
-    constexpr byte EXPECTED_CYCLES = 5;
+    constexpr byte EXPECTED_CYCLES = 6;
     cpu.execute();
 
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
@@ -96,9 +96,9 @@ TEST_F(JumpsAndCallsTests, JMPIndirectCanJumpToANewAddressOnPageBoundery) {
     ram[0xFFFD] = 0xFF;
     ram[0xFFFE] = 0x01;
     ram[0x01FF] = 0xFC;
-    ram[0x0100] = 0xBA;
+    ram[0x0200] = 0xBA;
     auto psCopy = cpu.PS;
-    constexpr byte EXPECTED_CYCLES = 5;
+    constexpr byte EXPECTED_CYCLES = 6;
     cpu.execute();
 
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
@@ -106,3 +106,50 @@ TEST_F(JumpsAndCallsTests, JMPIndirectCanJumpToANewAddressOnPageBoundery) {
     EXPECT_EQ(cpu.PS, psCopy);
 }
 
+TEST_F(JumpsAndCallsTests, JMPAbsoluteIndexedIndirectCanJumpToANewAddress) {
+    cpu.X = 0x37;
+    ram[0xFFFC] = _65C02::INS_JMP_ABS_IND;
+    ram[0xFFFD] = 0x00;
+    ram[0xFFFE] = 0x90;
+    ram[0x9037] = 0xFC;
+    ram[0x9038] = 0xBA;
+    auto psCopy = cpu.PS;
+    constexpr byte EXPECTED_CYCLES = 6;
+    cpu.execute();
+
+    EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
+    EXPECT_EQ(cpu.PC, 0xBAFC);
+    EXPECT_EQ(cpu.PS, psCopy);
+}
+
+TEST_F(JumpsAndCallsTests, JMPAbsoluteIndexedIndirectCanJumpToANewAddressOnPageBoundery) {
+    cpu.X = 0xFF;
+    ram[0xFFFC] = _65C02::INS_JMP_ABS_IND;
+    ram[0xFFFD] = 0x00;
+    ram[0xFFFE] = 0x90;
+    ram[0x90FF] = 0xFC;
+    ram[0x9100] = 0xBA;
+    auto psCopy = cpu.PS;
+    constexpr byte EXPECTED_CYCLES = 6;
+    cpu.execute();
+
+    EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
+    EXPECT_EQ(cpu.PC, 0xBAFC);
+    EXPECT_EQ(cpu.PS, psCopy);
+}
+
+TEST_F(JumpsAndCallsTests, JMPAbsoluteIndexedIndirectCanJumpToANewAddressOnEndOfMemory) {
+    cpu.X = 0x00;
+    ram[0xFFFC] = _65C02::INS_JMP_ABS_IND;
+    ram[0xFFFD] = 0xFF;
+    ram[0xFFFE] = 0xFF;
+    ram[0xFFFF] = 0xFC;
+    ram[0x0000] = 0xBA;
+    auto psCopy = cpu.PS;
+    constexpr byte EXPECTED_CYCLES = 6;
+    cpu.execute();
+
+    EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
+    EXPECT_EQ(cpu.PC, 0xBAFC);
+    EXPECT_EQ(cpu.PS, psCopy);
+}
