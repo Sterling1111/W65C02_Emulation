@@ -4,7 +4,7 @@
 
 int main() {
     System system{0x0000, 0x3FFF, 0x6000, 0x7FFF, 0x8000, 0xFFFF, .001};
-    system.executeProgram("a.out", 60, true, "emulation_jmp_abs_ind.txt");
+    system.executeProgram("emulation_load_register.out", 2000, true, "emulation_load_register.txt");
     return 0;
 }
 

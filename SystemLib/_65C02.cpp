@@ -9,22 +9,22 @@ _65C02::_65C02(double Mhz) : cycles{Mhz} {
 
     opCodeMatrix =
             {
-                    {&CPU::BRK, &CPU::stackB    }, {&CPU::ORA, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::TSB, &CPU::zeroPageB   }, {&CPU::ORA, &CPU::zeroPageA  }, {&CPU::ASL, &CPU::zeroPageB  }, {&CPU::RMB0, &CPU::zeroPageC }, {&CPU::PHP, &CPU::stackE      }, {&CPU::ORA, &CPU::immediate  }, {&CPU::ASL, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::TSB, &CPU::absoluteB                  }, {&CPU::ORA, &CPU::absoluteA  }, {&CPU::ASL, &CPU::absoluteB  }, {&CPU::BBR0, &CPU::immediate },
-                    {&CPU::BPL, &CPU::relativeA }, {&CPU::ORA, &CPU::zeroPageIndirectIndexed }, {&CPU::ORA, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::TRB, &CPU::zeroPageB   }, {&CPU::ORA, &CPU::zeroPageXA }, {&CPU::ASL, &CPU::zeroPageXB }, {&CPU::RMB1, &CPU::zeroPageC }, {&CPU::CLC, &CPU::impliedA    }, {&CPU::ORA, &CPU::absoluteY  }, {&CPU::INC, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::TRB, &CPU::absoluteB                  }, {&CPU::ORA, &CPU::absoluteXA }, {&CPU::ASL, &CPU::absoluteXB }, {&CPU::BBR1, &CPU::immediate },
-                    {&CPU::JSR, &CPU::absoluteD }, {&CPU::AND, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::BIT, &CPU::zeroPageB   }, {&CPU::AND, &CPU::zeroPageA  }, {&CPU::ROL, &CPU::zeroPageB  }, {&CPU::RMB2, &CPU::zeroPageC }, {&CPU::PLP, &CPU::stackF      }, {&CPU::AND, &CPU::immediate  }, {&CPU::ROL, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::BIT, &CPU::absoluteA                  }, {&CPU::AND, &CPU::absoluteA  }, {&CPU::ROL, &CPU::absoluteB  }, {&CPU::BBR2, &CPU::immediate },
-                    {&CPU::BMI, &CPU::relativeA }, {&CPU::AND, &CPU::zeroPageIndirectIndexed }, {&CPU::AND, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::BIT, &CPU::zeroPageXA  }, {&CPU::AND, &CPU::zeroPageXA }, {&CPU::ROL, &CPU::zeroPageXB }, {&CPU::RMB3, &CPU::zeroPageC }, {&CPU::SEC, &CPU::impliedA    }, {&CPU::AND, &CPU::absoluteY  }, {&CPU::DEC, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::BIT, &CPU::absoluteXA                 }, {&CPU::AND, &CPU::absoluteXA }, {&CPU::ROL, &CPU::absoluteXB }, {&CPU::BBR3, &CPU::immediate },
-                    {&CPU::RTI, &CPU::stackC    }, {&CPU::EOR, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::XXX, &CPU::immediate   }, {&CPU::EOR, &CPU::zeroPageA  }, {&CPU::LSR, &CPU::zeroPageB  }, {&CPU::RMB4, &CPU::zeroPageC }, {&CPU::PHA, &CPU::stackE      }, {&CPU::EOR, &CPU::immediate  }, {&CPU::LSR, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::JMP, &CPU::absoluteC                  }, {&CPU::EOR, &CPU::absoluteA  }, {&CPU::LSR, &CPU::absoluteB  }, {&CPU::BBR4, &CPU::immediate },
-                    {&CPU::BVC, &CPU::relativeA }, {&CPU::EOR, &CPU::zeroPageIndirectIndexed }, {&CPU::EOR, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::XXX, &CPU::immediate   }, {&CPU::EOR, &CPU::zeroPageXA }, {&CPU::LSR, &CPU::zeroPageXB }, {&CPU::RMB5, &CPU::zeroPageC }, {&CPU::CLI, &CPU::impliedA    }, {&CPU::EOR, &CPU::absoluteY  }, {&CPU::PHY, &CPU::stackE         }, {&CPU::XXX, &CPU::immediate  }, {&CPU::XXX, &CPU::immediate                  }, {&CPU::EOR, &CPU::absoluteXA }, {&CPU::LSR, &CPU::absoluteXB }, {&CPU::BBR5, &CPU::immediate },
-                    {&CPU::RTS, &CPU::stackD    }, {&CPU::ADC, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::STZ, &CPU::zeroPageA   }, {&CPU::ADC, &CPU::zeroPageA  }, {&CPU::ROR, &CPU::zeroPageB  }, {&CPU::RMB6, &CPU::zeroPageC }, {&CPU::PLA, &CPU::stackF      }, {&CPU::ADC, &CPU::immediate  }, {&CPU::ROR, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::JMP, &CPU::absoluteIndirect           }, {&CPU::ADC, &CPU::absoluteA  }, {&CPU::ROR, &CPU::absoluteB  }, {&CPU::BBR6, &CPU::immediate },
-                    {&CPU::BVS, &CPU::relativeA }, {&CPU::ADC, &CPU::zeroPageIndirectIndexed }, {&CPU::ADC, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::STZ, &CPU::zeroPageB   }, {&CPU::ADC, &CPU::zeroPageXA }, {&CPU::ROR, &CPU::zeroPageXB }, {&CPU::RMB7, &CPU::zeroPageC }, {&CPU::SEI, &CPU::impliedA    }, {&CPU::ADC, &CPU::absoluteY  }, {&CPU::PLY, &CPU::stackF         }, {&CPU::XXX, &CPU::immediate  }, {&CPU::JMP, &CPU::absoluteIndexedIndirect    }, {&CPU::ADC, &CPU::absoluteXA }, {&CPU::ROR, &CPU::absoluteXB }, {&CPU::BBR7, &CPU::immediate },
-                    {&CPU::BRA, &CPU::relativeA }, {&CPU::STA, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::STY, &CPU::zeroPageA   }, {&CPU::STA, &CPU::zeroPageA  }, {&CPU::STX, &CPU::zeroPageA  }, {&CPU::SMB0, &CPU::zeroPageC }, {&CPU::DEY, &CPU::impliedA    }, {&CPU::BIT, &CPU::immediate  }, {&CPU::TXA, &CPU::impliedA      }, {&CPU::XXX, &CPU::immediate  }, {&CPU::STY, &CPU::absoluteA                  }, {&CPU::STA, &CPU::absoluteA  }, {&CPU::STX, &CPU::absoluteA  }, {&CPU::BBS0, &CPU::immediate },
-                    {&CPU::BCC, &CPU::relativeA }, {&CPU::STA, &CPU::zeroPageIndirectIndexed }, {&CPU::STA, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::STY, &CPU::zeroPageXA  }, {&CPU::STA, &CPU::zeroPageXA }, {&CPU::STX, &CPU::zeroPageY  }, {&CPU::SMB1, &CPU::zeroPageC }, {&CPU::TYA, &CPU::impliedA    }, {&CPU::STA, &CPU::absoluteY  }, {&CPU::TXS, &CPU::impliedA       }, {&CPU::XXX, &CPU::immediate  }, {&CPU::STZ, &CPU::absoluteA                  }, {&CPU::STA, &CPU::absoluteXA }, {&CPU::STZ, &CPU::absoluteXA }, {&CPU::BBS1, &CPU::immediate },
-                    {&CPU::LDY, &CPU::immediate }, {&CPU::LDA, &CPU::zeroPageIndexedIndirect }, {&CPU::LDX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::LDY, &CPU::zeroPageA   }, {&CPU::LDA, &CPU::zeroPageA  }, {&CPU::LDX, &CPU::zeroPageA  }, {&CPU::SMB2, &CPU::zeroPageC }, {&CPU::TAY, &CPU::impliedA    }, {&CPU::LDA, &CPU::immediate  }, {&CPU::TAX, &CPU::immediate      }, {&CPU::XXX, &CPU::immediate  }, {&CPU::LDY, &CPU::absoluteA                  }, {&CPU::LDA, &CPU::absoluteA  }, {&CPU::LDX, &CPU::absoluteA  }, {&CPU::BBS2, &CPU::immediate },
-                    {&CPU::BCS, &CPU::relativeA }, {&CPU::LDA, &CPU::zeroPageIndirectIndexed }, {&CPU::LDA, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::LDY, &CPU::zeroPageXA  }, {&CPU::LDA, &CPU::zeroPageXA }, {&CPU::LDX, &CPU::zeroPageY  }, {&CPU::SMB3, &CPU::zeroPageC }, {&CPU::CLV, &CPU::impliedA    }, {&CPU::LDA, &CPU::absoluteY  }, {&CPU::TSX, &CPU::impliedA       }, {&CPU::XXX, &CPU::immediate  }, {&CPU::LDY, &CPU::absoluteXA                 }, {&CPU::LDA, &CPU::absoluteXA }, {&CPU::LDX, &CPU::absoluteY  }, {&CPU::BBS3, &CPU::immediate },
-                    {&CPU::CPY, &CPU::immediate }, {&CPU::CMP, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::CPY, &CPU::zeroPageA   }, {&CPU::CMP, &CPU::zeroPageA  }, {&CPU::DEC, &CPU::zeroPageB  }, {&CPU::SMB4, &CPU::zeroPageC }, {&CPU::INY, &CPU::impliedA    }, {&CPU::CMP, &CPU::immediate  }, {&CPU::DEX, &CPU::impliedA       }, {&CPU::WAI, &CPU::immediate  }, {&CPU::CPY, &CPU::absoluteA                  }, {&CPU::CMP, &CPU::absoluteA  }, {&CPU::DEC, &CPU::absoluteB  }, {&CPU::BBS4, &CPU::immediate },
-                    {&CPU::BNE, &CPU::relativeA }, {&CPU::CMP, &CPU::zeroPageIndirectIndexed }, {&CPU::CMP, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::XXX, &CPU::immediate   }, {&CPU::CMP, &CPU::zeroPageXA }, {&CPU::DEC, &CPU::zeroPageXB }, {&CPU::SMB5, &CPU::zeroPageC }, {&CPU::CLD, &CPU::impliedA    }, {&CPU::CMP, &CPU::absoluteY  }, {&CPU::PHX, &CPU::stackE         }, {&CPU::STP, &CPU::immediate  }, {&CPU::XXX, &CPU::immediate                  }, {&CPU::CMP, &CPU::absoluteXA }, {&CPU::DEC, &CPU::absoluteXB }, {&CPU::BBS5, &CPU::immediate },
-                    {&CPU::CPX, &CPU::immediate }, {&CPU::SBC, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::CPX, &CPU::zeroPageA   }, {&CPU::SBC, &CPU::zeroPageA  }, {&CPU::INC, &CPU::zeroPageB  }, {&CPU::SMB6, &CPU::zeroPageC }, {&CPU::INX, &CPU::impliedA    }, {&CPU::SBC, &CPU::immediate  }, {&CPU::NOP, &CPU::impliedA       }, {&CPU::XXX, &CPU::immediate  }, {&CPU::CPX, &CPU::absoluteA                  }, {&CPU::SBC, &CPU::absoluteA  }, {&CPU::INC, &CPU::absoluteB  }, {&CPU::BBS6, &CPU::immediate },
-                    {&CPU::BEQ, &CPU::relativeA }, {&CPU::SBC, &CPU::zeroPageIndirectIndexed }, {&CPU::SBC, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::XXX, &CPU::immediate   }, {&CPU::SBC, &CPU::zeroPageXA }, {&CPU::INC, &CPU::zeroPageXB }, {&CPU::SMB7, &CPU::zeroPageC }, {&CPU::SED, &CPU::impliedA    }, {&CPU::SBC, &CPU::absoluteY  }, {&CPU::PLX, &CPU::stackF         }, {&CPU::XXX, &CPU::immediate  }, {&CPU::XXX, &CPU::immediate                  }, {&CPU::SBC, &CPU::absoluteXA }, {&CPU::INC, &CPU::absoluteXB }, {&CPU::BBS7, &CPU::immediate },
+                    {&CPU::BRK, &CPU::stackB    }, {&CPU::ORA, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::TSB, &CPU::zeroPageB   }, {&CPU::ORA, &CPU::zeroPageA  }, {&CPU::ASL, &CPU::zeroPageB  }, {&CPU::RMB0, &CPU::zeroPageC }, {&CPU::PHP, &CPU::stackE      }, {&CPU::ORA, &CPU::immediate  }, {&CPU::ASL, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::TSB, &CPU::absoluteB                  }, {&CPU::ORA, &CPU::absoluteA  }, {&CPU::ASL, &CPU::absoluteB  }, {&CPU::BBR0, &CPU::relativeB },
+                    {&CPU::BPL, &CPU::relativeA }, {&CPU::ORA, &CPU::zeroPageIndirectIndexed }, {&CPU::ORA, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::TRB, &CPU::zeroPageB   }, {&CPU::ORA, &CPU::zeroPageXA }, {&CPU::ASL, &CPU::zeroPageXB }, {&CPU::RMB1, &CPU::zeroPageC }, {&CPU::CLC, &CPU::impliedA    }, {&CPU::ORA, &CPU::absoluteY  }, {&CPU::INC, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::TRB, &CPU::absoluteB                  }, {&CPU::ORA, &CPU::absoluteXA }, {&CPU::ASL, &CPU::absoluteXB }, {&CPU::BBR1, &CPU::relativeB },
+                    {&CPU::JSR, &CPU::absoluteD }, {&CPU::AND, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::BIT, &CPU::zeroPageB   }, {&CPU::AND, &CPU::zeroPageA  }, {&CPU::ROL, &CPU::zeroPageB  }, {&CPU::RMB2, &CPU::zeroPageC }, {&CPU::PLP, &CPU::stackF      }, {&CPU::AND, &CPU::immediate  }, {&CPU::ROL, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::BIT, &CPU::absoluteA                  }, {&CPU::AND, &CPU::absoluteA  }, {&CPU::ROL, &CPU::absoluteB  }, {&CPU::BBR2, &CPU::relativeB },
+                    {&CPU::BMI, &CPU::relativeA }, {&CPU::AND, &CPU::zeroPageIndirectIndexed }, {&CPU::AND, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::BIT, &CPU::zeroPageXA  }, {&CPU::AND, &CPU::zeroPageXA }, {&CPU::ROL, &CPU::zeroPageXB }, {&CPU::RMB3, &CPU::zeroPageC }, {&CPU::SEC, &CPU::impliedA    }, {&CPU::AND, &CPU::absoluteY  }, {&CPU::DEC, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::BIT, &CPU::absoluteXA                 }, {&CPU::AND, &CPU::absoluteXA }, {&CPU::ROL, &CPU::absoluteXB }, {&CPU::BBR3, &CPU::relativeB },
+                    {&CPU::RTI, &CPU::stackC    }, {&CPU::EOR, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::XXX, &CPU::immediate   }, {&CPU::EOR, &CPU::zeroPageA  }, {&CPU::LSR, &CPU::zeroPageB  }, {&CPU::RMB4, &CPU::zeroPageC }, {&CPU::PHA, &CPU::stackE      }, {&CPU::EOR, &CPU::immediate  }, {&CPU::LSR, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::JMP, &CPU::absoluteC                  }, {&CPU::EOR, &CPU::absoluteA  }, {&CPU::LSR, &CPU::absoluteB  }, {&CPU::BBR4, &CPU::relativeB },
+                    {&CPU::BVC, &CPU::relativeA }, {&CPU::EOR, &CPU::zeroPageIndirectIndexed }, {&CPU::EOR, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::XXX, &CPU::immediate   }, {&CPU::EOR, &CPU::zeroPageXA }, {&CPU::LSR, &CPU::zeroPageXB }, {&CPU::RMB5, &CPU::zeroPageC }, {&CPU::CLI, &CPU::impliedA    }, {&CPU::EOR, &CPU::absoluteY  }, {&CPU::PHY, &CPU::stackE         }, {&CPU::XXX, &CPU::immediate  }, {&CPU::XXX, &CPU::immediate                  }, {&CPU::EOR, &CPU::absoluteXA }, {&CPU::LSR, &CPU::absoluteXB }, {&CPU::BBR5, &CPU::relativeB },
+                    {&CPU::RTS, &CPU::stackD    }, {&CPU::ADC, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::STZ, &CPU::zeroPageA   }, {&CPU::ADC, &CPU::zeroPageA  }, {&CPU::ROR, &CPU::zeroPageB  }, {&CPU::RMB6, &CPU::zeroPageC }, {&CPU::PLA, &CPU::stackF      }, {&CPU::ADC, &CPU::immediate  }, {&CPU::ROR, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::JMP, &CPU::absoluteIndirect           }, {&CPU::ADC, &CPU::absoluteA  }, {&CPU::ROR, &CPU::absoluteB  }, {&CPU::BBR6, &CPU::relativeB },
+                    {&CPU::BVS, &CPU::relativeA }, {&CPU::ADC, &CPU::zeroPageIndirectIndexed }, {&CPU::ADC, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::STZ, &CPU::zeroPageB   }, {&CPU::ADC, &CPU::zeroPageXA }, {&CPU::ROR, &CPU::zeroPageXB }, {&CPU::RMB7, &CPU::zeroPageC }, {&CPU::SEI, &CPU::impliedA    }, {&CPU::ADC, &CPU::absoluteY  }, {&CPU::PLY, &CPU::stackF         }, {&CPU::XXX, &CPU::immediate  }, {&CPU::JMP, &CPU::absoluteIndexedIndirect    }, {&CPU::ADC, &CPU::absoluteXA }, {&CPU::ROR, &CPU::absoluteXB }, {&CPU::BBR7, &CPU::relativeB },
+                    {&CPU::BRA, &CPU::relativeA }, {&CPU::STA, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::STY, &CPU::zeroPageA   }, {&CPU::STA, &CPU::zeroPageA  }, {&CPU::STX, &CPU::zeroPageA  }, {&CPU::SMB0, &CPU::zeroPageC }, {&CPU::DEY, &CPU::impliedA    }, {&CPU::BIT, &CPU::immediate  }, {&CPU::TXA, &CPU::impliedA      }, {&CPU::XXX, &CPU::immediate  }, {&CPU::STY, &CPU::absoluteA                  }, {&CPU::STA, &CPU::absoluteA  }, {&CPU::STX, &CPU::absoluteA  }, {&CPU::BBS0, &CPU::relativeB},
+                    {&CPU::BCC, &CPU::relativeA }, {&CPU::STA, &CPU::zeroPageIndirectIndexed }, {&CPU::STA, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::STY, &CPU::zeroPageXA  }, {&CPU::STA, &CPU::zeroPageXA }, {&CPU::STX, &CPU::zeroPageY  }, {&CPU::SMB1, &CPU::zeroPageC }, {&CPU::TYA, &CPU::impliedA    }, {&CPU::STA, &CPU::absoluteY  }, {&CPU::TXS, &CPU::impliedA       }, {&CPU::XXX, &CPU::immediate  }, {&CPU::STZ, &CPU::absoluteA                  }, {&CPU::STA, &CPU::absoluteXA }, {&CPU::STZ, &CPU::absoluteXA }, {&CPU::BBS1, &CPU::relativeB },
+                    {&CPU::LDY, &CPU::immediate }, {&CPU::LDA, &CPU::zeroPageIndexedIndirect }, {&CPU::LDX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::LDY, &CPU::zeroPageA   }, {&CPU::LDA, &CPU::zeroPageA  }, {&CPU::LDX, &CPU::zeroPageA  }, {&CPU::SMB2, &CPU::zeroPageC }, {&CPU::TAY, &CPU::impliedA    }, {&CPU::LDA, &CPU::immediate  }, {&CPU::TAX, &CPU::immediate      }, {&CPU::XXX, &CPU::immediate  }, {&CPU::LDY, &CPU::absoluteA                  }, {&CPU::LDA, &CPU::absoluteA  }, {&CPU::LDX, &CPU::absoluteA  }, {&CPU::BBS2, &CPU::relativeB },
+                    {&CPU::BCS, &CPU::relativeA }, {&CPU::LDA, &CPU::zeroPageIndirectIndexed }, {&CPU::LDA, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::LDY, &CPU::zeroPageXA  }, {&CPU::LDA, &CPU::zeroPageXA }, {&CPU::LDX, &CPU::zeroPageY  }, {&CPU::SMB3, &CPU::zeroPageC }, {&CPU::CLV, &CPU::impliedA    }, {&CPU::LDA, &CPU::absoluteY  }, {&CPU::TSX, &CPU::impliedA       }, {&CPU::XXX, &CPU::immediate  }, {&CPU::LDY, &CPU::absoluteXA                 }, {&CPU::LDA, &CPU::absoluteXA }, {&CPU::LDX, &CPU::absoluteY  }, {&CPU::BBS3, &CPU::relativeB },
+                    {&CPU::CPY, &CPU::immediate }, {&CPU::CMP, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::CPY, &CPU::zeroPageA   }, {&CPU::CMP, &CPU::zeroPageA  }, {&CPU::DEC, &CPU::zeroPageB  }, {&CPU::SMB4, &CPU::zeroPageC }, {&CPU::INY, &CPU::impliedA    }, {&CPU::CMP, &CPU::immediate  }, {&CPU::DEX, &CPU::impliedA       }, {&CPU::WAI, &CPU::immediate  }, {&CPU::CPY, &CPU::absoluteA                  }, {&CPU::CMP, &CPU::absoluteA  }, {&CPU::DEC, &CPU::absoluteB  }, {&CPU::BBS4, &CPU::relativeB },
+                    {&CPU::BNE, &CPU::relativeA }, {&CPU::CMP, &CPU::zeroPageIndirectIndexed }, {&CPU::CMP, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::XXX, &CPU::immediate   }, {&CPU::CMP, &CPU::zeroPageXA }, {&CPU::DEC, &CPU::zeroPageXB }, {&CPU::SMB5, &CPU::zeroPageC }, {&CPU::CLD, &CPU::impliedA    }, {&CPU::CMP, &CPU::absoluteY  }, {&CPU::PHX, &CPU::stackE         }, {&CPU::STP, &CPU::immediate  }, {&CPU::XXX, &CPU::immediate                  }, {&CPU::CMP, &CPU::absoluteXA }, {&CPU::DEC, &CPU::absoluteXB }, {&CPU::BBS5, &CPU::relativeB },
+                    {&CPU::CPX, &CPU::immediate }, {&CPU::SBC, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::CPX, &CPU::zeroPageA   }, {&CPU::SBC, &CPU::zeroPageA  }, {&CPU::INC, &CPU::zeroPageB  }, {&CPU::SMB6, &CPU::zeroPageC }, {&CPU::INX, &CPU::impliedA    }, {&CPU::SBC, &CPU::immediate  }, {&CPU::NOP, &CPU::impliedA       }, {&CPU::XXX, &CPU::immediate  }, {&CPU::CPX, &CPU::absoluteA                  }, {&CPU::SBC, &CPU::absoluteA  }, {&CPU::INC, &CPU::absoluteB  }, {&CPU::BBS6, &CPU::relativeB },
+                    {&CPU::BEQ, &CPU::relativeA }, {&CPU::SBC, &CPU::zeroPageIndirectIndexed }, {&CPU::SBC, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::XXX, &CPU::immediate   }, {&CPU::SBC, &CPU::zeroPageXA }, {&CPU::INC, &CPU::zeroPageXB }, {&CPU::SMB7, &CPU::zeroPageC }, {&CPU::SED, &CPU::impliedA    }, {&CPU::SBC, &CPU::absoluteY  }, {&CPU::PLX, &CPU::stackF         }, {&CPU::XXX, &CPU::immediate  }, {&CPU::XXX, &CPU::immediate                  }, {&CPU::SBC, &CPU::absoluteXA }, {&CPU::INC, &CPU::absoluteXB }, {&CPU::BBS7, &CPU::relativeB },
             };
 }
 
@@ -166,7 +166,7 @@ word _65C02::absoluteB(byte _65C02::*, const std::function<byte(byte)>& op) {
  * JMP
  * @return The absolute address which will be the new PC
  */
-word _65C02::absoluteC(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word _65C02::absoluteC(byte _65C02::*, const std::function<byte(byte)>& op) {
     return fetchWord();
 }
 
@@ -227,10 +227,12 @@ word _65C02::impliedA(byte _65C02::* Register, const std::function<byte(byte)>& 
     return readByte(PC);
 }
 
+//TODO - wait for interupt
 word _65C02::impliedB(byte _65C02::* Register, const std::function<byte(byte)>& op) {
     return 0;
 }
 
+//TODO - stop the clock
 word _65C02::impliedC(byte _65C02::* Register, const std::function<byte(byte)>& op) {
     return 0;
 }
@@ -259,21 +261,28 @@ word _65C02::zeroPageIndexedIndirect(byte _65C02::* Register, const std::functio
 word _65C02::zeroPageXA(byte _65C02::* Register, const std::function<byte(byte)>& op) {
     byte address{fetchByte()};
     byte effectiveAddress = address + X;
-    readByte(address);
+    readByte(PC - 1);
     if(Register) {
         writeByte(this->*Register, effectiveAddress);
         return 0;
     } return readByte(effectiveAddress);
 }
 
+//TODO - test this functions correctness it is gaurenteed to be worng I just dont
+// yet know what right it
 word _65C02::zeroPageXB(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+    byte zeroPage{readByte(PC)};
+    fetchByte();
+    byte data{readByte(zeroPage + X)};
+    readByte(readByte(zeroPage + X + 1));
+    writeByte(op(data), zeroPage + X);
     return 0;
 }
 
 word _65C02::zeroPageY(byte _65C02::* Register, const std::function<byte(byte)>& op) {
     byte address{fetchByte()};
     byte effectiveAddress = address + Y;
-    readByte(address);
+    readByte(PC - 1);
     cycles += (address + Y > 0xFF);
     if(Register) {
         writeByte(this->*Register, effectiveAddress);
@@ -284,36 +293,51 @@ word _65C02::zeroPageY(byte _65C02::* Register, const std::function<byte(byte)>&
 word _65C02::absoluteXA(byte _65C02::* Register, const std::function<byte(byte)>& op) {
     word address = fetchWord();
     dword effectiveAddress = address + X;
-    byte data{readByte(effectiveAddress)};
     if(Register) {
-        if(((address & 0xFF) + X) > 0xFF)
-            writeByte(this->*Register, effectiveAddress - 0x100);
-        else
+        if(((address & 0xFF) + X) > 0xFF) {
+            readByte(PC - 1);
             writeByte(this->*Register, effectiveAddress);
+        } else {
+            readByte(effectiveAddress);
+            writeByte(this->*Register, effectiveAddress);
+        }
     }
-    else if(((address & 0xFF) + X) > 0xFF)
-        readByte(effectiveAddress - 0x100);
-    else return data;
+    else if(((address & 0xFF) + X) > 0xFF) {
+        readByte(PC - 1);
+        return readByte(effectiveAddress);
+    } else return readByte(effectiveAddress);
     return 0;
 }
 
+//TODO - test this functions correctness it is gaurenteed to be worng I just dont
+// yet know what right it
 word _65C02::absoluteXB(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+    byte AAL{fetchByte()};
+    byte AAH{fetchByte()};
+    word address = (AAH << 4) | AAL;
+    readByte((AAH  << 4) | (byte)(AAL + X));
+    byte data{readByte(address + X)};
+    readByte(address + X + 1);
+    writeByte(op(data), address + X);
     return 0;
 }
 
 word _65C02::absoluteY(byte _65C02::* Register, const std::function<byte(byte)>& op) {
     word address = fetchWord();
     dword effectiveAddress = address + Y;
-    byte data{readByte(effectiveAddress)};
     if(Register) {
-        if(((address & 0xFF) + Y) > 0xFF)
-            writeByte(this->*Register, effectiveAddress - 0x100);
-        else
+        if(((address & 0xFF) + Y) > 0xFF) {
+            readByte(PC - 1);
             writeByte(this->*Register, effectiveAddress);
+        } else {
+            readByte(effectiveAddress);
+            writeByte(this->*Register, effectiveAddress);
+        }
     }
-    else if(((address & 0xFF) + Y) > 0xFF)
-        readByte(effectiveAddress - 0x100);
-    else return data;
+    else if(((address & 0xFF) + Y) > 0xFF) {
+        readByte(PC - 1);
+        return readByte(effectiveAddress);
+    } else return readByte(effectiveAddress);
     return 0;
 }
 
@@ -329,8 +353,21 @@ word _65C02::relativeA(byte _65C02::* Register, const std::function<byte(byte)>&
     return PC;
 }
 
+//TODO - test the correctness of this function it is gautenteed to be wrong.
 word _65C02::relativeB(byte _65C02::* Register, const std::function<byte(byte)>& op) {
-    return 0;
+    byte value{fetchByte()};
+    byte zeroPage{fetchByte()};
+    readByte(zeroPage);
+    readByte(zeroPage);
+    readByte(zeroPage);
+    if(op(0)) {     //Then we should branch. the value passed to op is garbage. It isn't needed.
+        readByte(PC);
+        auto svalue = (sbyte)value;
+        if((PC & 0xFF) + svalue < 0 || (PC & 0xFF) + svalue > 0xFF)
+            readByte(PC);
+        return PC + svalue;
+    }
+    return PC;
 }
 
 word _65C02::absoluteIndirect(byte _65C02::* Register, const std::function<byte(byte)>& op) {
@@ -421,84 +458,117 @@ void _65C02::ASL(word (_65C02::* addrMode)(byte _65C02::*, const std::function<b
 }
 
 void _65C02::BBR0(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return !(data & 0b00000001);
+    });
 }
 
 void _65C02::BBR1(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return !(data & 0b00000010);
+    });
 }
 
 void _65C02::BBR2(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return !(data & 0b00000100);
+    });
 }
 
 void _65C02::BBR3(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return !(data & 0b00001000);
+    });
 }
 
 void _65C02::BBR4(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return !(data & 0b00010000);
+    });
 }
 
 void _65C02::BBR5(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return !(data & 0b00100000);
+    });
 }
 
 void _65C02::BBR6(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return !(data & 0b01000000);
+    });
 }
 
 void _65C02::BBR7(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return !(data & 0b10000000);
+});
 
 }
 
 void _65C02::BBS0(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return (data & 0b00000001);
+    });
 }
 
 void _65C02::BBS1(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return (data & 0b00000010);
+    });
 }
 
 void _65C02::BBS2(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return (data & 0b00000100);
+    });
 }
 
 void _65C02::BBS3(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return (data & 0b00001000);
+    });
 }
 
 void _65C02::BBS4(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return (data & 0b00010000);
+    });
 }
 
 void _65C02::BBS5(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return (data & 0b00100000);
+    });
 }
 
 void _65C02::BBS6(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return (data & 0b01000000);
+    });
 }
 
 void _65C02::BBS7(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, [this](byte data) {
+        return (data & 0b10000000);
+    });
 }
 
 void _65C02::BCC(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
-        return !PS.test(StatusFlags::C) ? 1 : 0;    //return 1 for should branch and 2 for should not
+        return !PS.test(StatusFlags::C);    //return true for should branch false otherwise
     });
 }
 
 void _65C02::BCS(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
-        return PS.test(StatusFlags::C) ? 1 : 0;    //return 1 for should branch and 2 for should not
+        return PS.test(StatusFlags::C) ? 1 : 0;    //return true for should branch false otherwise
     });
 }
 
 void _65C02::BEQ(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
-        return PS.test(StatusFlags::Z) ? 1 : 0;    //return 1 for should branch and 2 for should not
+        return PS.test(StatusFlags::Z);    //return true for should branch false otherwise
     });
 }
 
@@ -508,7 +578,7 @@ void _65C02::BIT(word (_65C02::* addrMode)(byte _65C02::*, const std::function<b
 
 void _65C02::BMI(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
-        return PS.test(StatusFlags::N) ? 1 : 0;    //return 1 for should branch and 2 for should not
+        return PS.test(StatusFlags::N);    //return true for should branch false otherwise
     });
 }
 
@@ -516,13 +586,13 @@ void _65C02::BMI(word (_65C02::* addrMode)(byte _65C02::*, const std::function<b
 //solution to every problem you spin your wheels for ages. It works. The end.
 void _65C02::BNE(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
-        return !PS.test(StatusFlags::Z) ? 1 : 0;    //return 1 for should branch and 2 for should not
+        return !PS.test(StatusFlags::Z);    //return true for should branch false otherwise
     });
 }
 
 void _65C02::BPL(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
-        return !PS.test(StatusFlags::N) ? 1 : 0;    //return 1 for should branch and 2 for should not
+        return !PS.test(StatusFlags::N);    //return true for should branch false otherwise
     });
 }
 
@@ -538,13 +608,13 @@ void _65C02::BRK(word (_65C02::* addrMode)(byte _65C02::*, const std::function<b
 
 void _65C02::BVC(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
-        return !PS.test(StatusFlags::V) ? 1 : 0;    //return 1 for should branch and 2 for should not
+        return !PS.test(StatusFlags::V);    //return true for should branch false otherwise
     });
 }
 
 void _65C02::BVS(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
-        return PS.test(StatusFlags::V) ? 1 : 0;    //return 1 for should branch and 2 for should not
+        return PS.test(StatusFlags::V);    //return true for should branch false otherwise
     });
 }
 
@@ -569,15 +639,24 @@ void _65C02::CLV(word (_65C02::* addrMode)(byte _65C02::*, const std::function<b
 }
 
 void _65C02::CMP(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    byte value = (this->*addrMode)(nullptr, nullptr);
+    PS.set(StatusFlags::C, A >= value);
+    PS.set(StatusFlags::Z, A == value);
+    PS.set(StatusFlags::N, A < value);
 }
 
 void _65C02::CPX(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    byte value = (this->*addrMode)(nullptr, nullptr);
+    PS.set(StatusFlags::C, X >= value);
+    PS.set(StatusFlags::Z, X == value);
+    PS.set(StatusFlags::N, X < value);
 }
 
 void _65C02::CPY(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-
+    byte value = (this->*addrMode)(nullptr, nullptr);
+    PS.set(StatusFlags::C, Y >= value);
+    PS.set(StatusFlags::Z, Y == value);
+    PS.set(StatusFlags::N, Y < value);
 }
 
 void _65C02::DEC(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {

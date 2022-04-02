@@ -15,7 +15,7 @@ public:
 
     void executeProgram(const std::string& programObjFile, uint64_t instructionsToExecute = std::numeric_limits<uint64_t>::max(), bool logging = false, const std::string& outFile = "") {
         eeprom.loadProgram(programObjFile);
-        cpu.reset(cpu.readByte(0xFFFC) | (cpu.readByte(0xFFFD) << 8));
+        cpu.reset(eeprom[0xFFFC - 0x8000] | eeprom[0xFFFD - 0x8000] << 8);
         bus.log = logging;
         if(!bus.openProgramOutFile(outFile)) { bus.log = false; }
         cpu.execute(instructionsToExecute);

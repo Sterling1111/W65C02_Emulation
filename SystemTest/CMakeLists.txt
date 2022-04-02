@@ -15,6 +15,7 @@ FetchContent_MakeAvailable(googletest)
 
 # source for the test executable
 set  (6502_TEST_SOURCES
+        "file_compare.h"
         "LoadRegisterTests.cpp"
         "StoreRegisterTests.cpp"
         "JumpsAndCallsTests.cpp"

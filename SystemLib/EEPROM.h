@@ -24,7 +24,7 @@ public:
     void loadProgram(const std::string& programObjFile) {
         std::fstream program(programObjFile, std::ios::in | std::ios::binary);
         program.seekg(0, std::ios::end);
-        long size = program.tellg();
+        auto size = program.tellg();
         program.seekg(0, std::ios::beg);
         program.read(reinterpret_cast<char*>(&data), size);
     }

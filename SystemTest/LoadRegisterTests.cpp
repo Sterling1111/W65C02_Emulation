@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include "file_compare.h"
 #include "System.h"
 
 class LD_Im_Abs_ZP : public testing::TestWithParam<word> {
@@ -252,7 +253,7 @@ void LD_ABSX_ABSY::TestLoadRegisterAbsoluteX(byte opcode, byte xVal, word addr, 
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = addr & 0xFF;
     ram[0xFFFE] = addr >> 8;
-    ram[(addr & 0xFF00) | (byte)(addr + xVal)] = valToLoad;
+    ram[addr + xVal] = valToLoad;
     auto psCopy = cpu.PS;
     auto PCCopy = cpu.PC;
     dword EXPECTED_CYCLES = 4 + ((addr & 0xFF) + xVal > 0xFF);
@@ -274,7 +275,7 @@ void LD_ABSX_ABSY::TestLoadRegisterAbsoluteY(byte opcode, byte yVal, word addr, 
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = addr & 0xFF;
     ram[0xFFFE] = addr >> 8;
-    ram[(addr & 0xFF00) | (byte)(addr + yVal)] = valToLoad;
+    ram[addr + yVal] = valToLoad;
     auto psCopy = cpu.PS;
     auto PCCopy = cpu.PC;
     dword EXPECTED_CYCLES = 4 + ((addr & 0xFF) + yVal > 0xFF);
@@ -427,7 +428,11 @@ INSTANTIATE_TEST_SUITE_P(RegVal_Addr_LoadVal_Params, LD_ABSX_ABSY,
 
 TEST(ProgramLoggingOutput, LoadRegister) {
     System system{0x0000, 0x3FFF, 0x6000, 0x7FFF, 0x8000, 0xFFFF, .001};
-    system.executeProgram("a.out", 88, true, "emulation_load_register.txt");
+    system.executeProgram("EmulationOutFiles//emulation_load_register.out", 155, true,
+                          "EmulationLogFiles//emulation_load_register.txt");
+    std::string result = compareFiles("65C02LogFiles//65C02_load_register.txt",
+                                      "EmulationLogFiles//emulation_load_register.txt");
+    ASSERT_EQ(result, "Equal");
 }
 
 

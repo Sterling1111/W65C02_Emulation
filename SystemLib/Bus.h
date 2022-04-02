@@ -42,7 +42,7 @@ public:
             return ram[address - ramMin];
         }
         else if(address >= regMin && address <= regMax) {
-            //65C22 read
+
         }
         else if(address >= romMin && address <= romMax) {
             byte data{eeprom[address - romMin]};
