@@ -184,7 +184,7 @@ TEST_F(StoreRegisterTests, STAAbsoluteXCanStoreARegisterIntoMemoryWhenPageBounde
     ram[0xFFFC] = _65C02::INS_STA_ABSX;
     ram[0xFFFD] = 0x02;
     ram[0xFFFE] = 0x44;
-    ram[0x4401] = cpu.A + 1;
+    ram[0x4501] = cpu.A + 1;
     auto psCopy = cpu.PS;
     auto pcCopy = cpu.PC;
     constexpr dword EXPECTED_CYCLES = 5;
@@ -193,7 +193,7 @@ TEST_F(StoreRegisterTests, STAAbsoluteXCanStoreARegisterIntoMemoryWhenPageBounde
 
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - pcCopy, EXPECTED_BYTES);
-    EXPECT_EQ(cpu.A, ram[0x4401]);
+    EXPECT_EQ(cpu.A, ram[0x4501]);
     EXPECT_EQ(cpu.PS, psCopy);
 }
 
@@ -222,7 +222,7 @@ TEST_F(StoreRegisterTests, STAAbsoluteYCanStoreARegisterIntoMemoryWhenPageBounde
     ram[0xFFFC] = _65C02::INS_STA_ABSX;
     ram[0xFFFD] = 0x02;
     ram[0xFFFE] = 0x44;
-    ram[0x4401] = cpu.A + 1;
+    ram[0x4501] = cpu.A + 1;
     auto psCopy = cpu.PS;
     auto pcCopy = cpu.PC;
     constexpr dword EXPECTED_CYCLES = 5;
@@ -231,7 +231,7 @@ TEST_F(StoreRegisterTests, STAAbsoluteYCanStoreARegisterIntoMemoryWhenPageBounde
 
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - pcCopy, EXPECTED_BYTES);
-    EXPECT_EQ(cpu.A, ram[0x4401]);
+    EXPECT_EQ(cpu.A, ram[0x4501]);
     EXPECT_EQ(cpu.PS, psCopy);
 }
 
@@ -284,7 +284,7 @@ TEST_F(StoreRegisterTests, STAIndirectYCanStoreARegisterIntoMemory) {
     ram[0x8004] = cpu.A + 1;
     auto psCopy = cpu.PS;
     auto pcCopy = cpu.PC;
-    constexpr dword EXPECTED_CYCLES = 5;
+    constexpr dword EXPECTED_CYCLES = 6;
     constexpr dword EXPECTED_BYTES = 2;
     cpu.execute();
 
@@ -313,4 +313,16 @@ TEST_F(StoreRegisterTests, STAIndirectYCanStoreARegisterIntoMemoryWhenPageBounde
     EXPECT_EQ(cpu.PC - pcCopy, EXPECTED_BYTES);
     EXPECT_EQ(cpu.A, ram[0x8101]);
     EXPECT_EQ(cpu.PS, psCopy);
+}
+
+TEST(ProgramLoggingOutput, StoreRegisterLogging) {
+    System system{0x0000, 0x3FFF, 0x6000, 0x7FFF, 0x8000, 0xFFFF, .001};
+    system.executeProgram("EmulationOutFiles//emulation_store_register.out", 119, true,
+                          "EmulationLogFiles//emulation_store_register.txt");
+    std::ifstream emulation_logging("EmulationLogFiles//emulation_store_register.txt"),
+                    _65C02_logging("65C02LogFiles//65C02_store_register.txt");
+    std::stringstream emulation_buffer, _65C02_buffer;
+    emulation_buffer << emulation_logging.rdbuf();
+    _65C02_buffer << _65C02_logging.rdbuf();
+    EXPECT_STREQ(_65C02_buffer.str().c_str(), emulation_buffer.str().c_str());
 }
