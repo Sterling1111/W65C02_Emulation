@@ -425,7 +425,7 @@ INSTANTIATE_TEST_SUITE_P(RegVal_Addr_LoadVal_Params, LD_ABSX_ABSY,
                                  std::make_tuple(0xFF, 0x4480, 0x00)
                                  ));
 
-TEST(ProgramLoggingOutput, LoadRegister) {
+TEST(ProgramLoggingOutput, LoadRegisterLogging) {
     System system{0x0000, 0x3FFF, 0x6000, 0x7FFF, 0x8000, 0xFFFF, .001};
     system.executeProgram("EmulationOutFiles//emulation_load_register.out", 155, true,
                           "EmulationLogFiles//emulation_load_register.txt");

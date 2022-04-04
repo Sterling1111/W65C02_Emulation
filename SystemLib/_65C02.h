@@ -62,7 +62,7 @@ public:
     void execute(uint64_t instructionsToExecute = 1);
     void pushByteToStack(byte data);
     void pushWordToStack(word data);
-    word SPToAddress();
+    word SPToAddress() const;
     byte pullByteFromStack();
     byte readByteFromStack();
 

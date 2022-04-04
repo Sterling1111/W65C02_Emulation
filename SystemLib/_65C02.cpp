@@ -1,6 +1,4 @@
 #include "Bus.h"
-#include "_65C02.h"
-
 
 _65C02::_65C02(double Mhz) : cycles{Mhz} {
     reset();
@@ -125,7 +123,7 @@ byte _65C02::readByteFromStack() {
 }
 
 //return the SP as a full 16 bit address in the first page even though SP is a byte
-word _65C02::SPToAddress() {
+word _65C02::SPToAddress() const {
     return 0x100 | SP;
 }
 
