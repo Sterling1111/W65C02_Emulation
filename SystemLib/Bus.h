@@ -3,14 +3,14 @@
 
 #include <fstream>
 #include <iomanip>
-#include "_65C02.h"
+#include "W65C02.h"
 #include "RAM.h"
 #include "EEPROM.h"
 #include "W65C22S.h"
 
 class Bus {
 public:
-    Bus(_65C02& cpu, RAM& ram, sdword ramMin, sdword ramMax, W65C22S& registers, sdword regMin, sdword regMax,
+    Bus(W65C02& cpu, RAM& ram, sdword ramMin, sdword ramMax, W65C22S& registers, sdword regMin, sdword regMax,
         EEPROM& eeprom, sdword romMin, sdword romMax) :
         cpu{cpu}, ram{ram}, ramMin{ramMin}, ramMax{ramMax}, registers{registers},
         regMin{regMin}, regMax{regMax}, eeprom{eeprom}, romMin{romMin}, romMax{romMax}
@@ -62,7 +62,7 @@ public:
     }
 
 public:
-    _65C02& cpu;
+    W65C02& cpu;
     W65C22S& registers;
     RAM& ram;
     EEPROM& eeprom;

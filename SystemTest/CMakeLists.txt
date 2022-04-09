@@ -14,14 +14,14 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 # source for the test executable
-set  (6502_TEST_SOURCES
-        "file_compare.h"
+set  (TEST_SOURCES
         "LoadRegisterTests.cpp"
         "StoreRegisterTests.cpp"
         "JumpsAndCallsTests.cpp"
         "StackOperationsTests.cpp"
+        "LogicalOperationsTests.cpp"
         "main.cpp")
 
-add_executable( SystemTest ${6502_TEST_SOURCES} 	)
+add_executable( SystemTest ${TEST_SOURCES} 	)
 add_dependencies( SystemTest SystemLib )
 target_link_libraries(SystemTest gtest SystemLib)

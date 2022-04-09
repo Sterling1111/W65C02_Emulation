@@ -3,8 +3,8 @@
 
 class StoreRegisterTests : public testing::Test {
 public:
-    System system{0x0000, 0xFFFF, -1, -1, -1, -1, .1};
-    _65C02& cpu = system.cpu;
+    System system{0x0000, 0xFFFF, -1, -1, -1, -1, 1};
+    W65C02& cpu = system.cpu;
     RAM& ram = system.ram;
     virtual void SetUp() {
         cpu.reset();
@@ -12,13 +12,13 @@ public:
     }
     virtual void TearDown() {}
 
-    void TestStoreRegisterZeroPage(byte, byte _65C02::*);
-    void TestStoreRegisterZeroPageX(byte, byte _65C02::*);
-    void TestStoreRegisterZeroPageXWhenItRaps(byte, byte _65C02::*);
-    void TestStoreRegisterAbsolute(byte, byte _65C02::*);
+    void TestStoreRegisterZeroPage(byte, byte W65C02::*);
+    void TestStoreRegisterZeroPageX(byte, byte W65C02::*);
+    void TestStoreRegisterZeroPageXWhenItRaps(byte, byte W65C02::*);
+    void TestStoreRegisterAbsolute(byte, byte W65C02::*);
 };
 
-void StoreRegisterTests::TestStoreRegisterZeroPage(byte opcode, byte _65C02::* Register) {
+void StoreRegisterTests::TestStoreRegisterZeroPage(byte opcode, byte W65C02::* Register) {
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = 0x42;
     ram[0x0042] = cpu.*Register + 1;
@@ -34,7 +34,7 @@ void StoreRegisterTests::TestStoreRegisterZeroPage(byte opcode, byte _65C02::* R
     EXPECT_EQ(cpu.PS, psCopy);
 }
 
-void StoreRegisterTests::TestStoreRegisterZeroPageX(byte opcode, byte _65C02::* Register) {
+void StoreRegisterTests::TestStoreRegisterZeroPageX(byte opcode, byte W65C02::* Register) {
     cpu.X = 5;
     cpu.*Register = 0x69;
     ram[0xFFFC] = opcode;
@@ -52,7 +52,7 @@ void StoreRegisterTests::TestStoreRegisterZeroPageX(byte opcode, byte _65C02::* 
     EXPECT_EQ(cpu.PS, psCopy);
 }
 
-void StoreRegisterTests::TestStoreRegisterZeroPageXWhenItRaps(byte opcode, byte _65C02::* Register) {
+void StoreRegisterTests::TestStoreRegisterZeroPageXWhenItRaps(byte opcode, byte W65C02::* Register) {
     cpu.X = 0xFF;
     cpu.*Register = 0x69;
     ram[0xFFFC] = opcode;
@@ -70,7 +70,7 @@ void StoreRegisterTests::TestStoreRegisterZeroPageXWhenItRaps(byte opcode, byte 
     EXPECT_EQ(cpu.PS, psCopy);
 }
 
-void StoreRegisterTests::TestStoreRegisterAbsolute(byte opcode, byte _65C02::* Register) {
+void StoreRegisterTests::TestStoreRegisterAbsolute(byte opcode, byte W65C02::* Register) {
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = 0x80;
     ram[0xFFFE] = 0x44;
@@ -88,36 +88,36 @@ void StoreRegisterTests::TestStoreRegisterAbsolute(byte opcode, byte _65C02::* R
 }
 
 TEST_F(StoreRegisterTests, STAZeroPageCanStoreARegisterIntoMemory) {
-    TestStoreRegisterZeroPage(_65C02::INS_STA_ZP, &_65C02::A);
+    TestStoreRegisterZeroPage(W65C02::INS_STA_ZP, &W65C02::A);
 }
 
 TEST_F(StoreRegisterTests, STXZeroPageCanStoreXRegisterIntoMemory) {
-    TestStoreRegisterZeroPage(_65C02::INS_STX_ZP, &_65C02::X);
+    TestStoreRegisterZeroPage(W65C02::INS_STX_ZP, &W65C02::X);
 }
 
 TEST_F(StoreRegisterTests, STYZeroPageCanStoreYRegisterIntoMemory) {
-    TestStoreRegisterZeroPage(_65C02::INS_STY_ZP, &_65C02::Y);
+    TestStoreRegisterZeroPage(W65C02::INS_STY_ZP, &W65C02::Y);
 }
 
 TEST_F(StoreRegisterTests, STAZeroPageXCanStoreARegisterIntoMemory) {
-    TestStoreRegisterZeroPageX(_65C02::INS_STA_ZPX, &_65C02::A);
+    TestStoreRegisterZeroPageX(W65C02::INS_STA_ZPX, &W65C02::A);
 }
 
 TEST_F(StoreRegisterTests, STAZeroPageXCanStoreARegisterIntoMemoryWhenItRaps) {
-    TestStoreRegisterZeroPageXWhenItRaps(_65C02::INS_STA_ZPX, &_65C02::A);
+    TestStoreRegisterZeroPageXWhenItRaps(W65C02::INS_STA_ZPX, &W65C02::A);
 }
 
 TEST_F(StoreRegisterTests, STYZeroPageXCanStoreYRegisterIntoMemory) {
-    TestStoreRegisterZeroPageX(_65C02::INS_STY_ZPX, &_65C02::Y);
+    TestStoreRegisterZeroPageX(W65C02::INS_STY_ZPX, &W65C02::Y);
 }
 
 TEST_F(StoreRegisterTests, STYZeroPageXCanStoreYRegisterIntoMemoryWhenItRaps) {
-    TestStoreRegisterZeroPageXWhenItRaps(_65C02::INS_STY_ZPX, &_65C02::Y);
+    TestStoreRegisterZeroPageXWhenItRaps(W65C02::INS_STY_ZPX, &W65C02::Y);
 }
 
 TEST_F(StoreRegisterTests, STXZeroPageYCanStoreXRegisterIntoMemory) {
     cpu.Y = 5;
-    ram[0xFFFC] = _65C02::INS_STX_ZPY;
+    ram[0xFFFC] = W65C02::INS_STX_ZPY;
     ram[0xFFFD] = 0x42;
     ram[0x0047] = cpu.X + 1;
     auto psCopy = cpu.PS;
@@ -134,7 +134,7 @@ TEST_F(StoreRegisterTests, STXZeroPageYCanStoreXRegisterIntoMemory) {
 
 TEST_F(StoreRegisterTests, STXZeroPageYCanStoreXRegisterIntoMemoryWhenItRaps) {
     cpu.Y = 0xFF;
-    ram[0xFFFC] = _65C02::INS_STX_ZPY;
+    ram[0xFFFC] = W65C02::INS_STX_ZPY;
     ram[0xFFFD] = 0x80;
     ram[0x007F] = cpu.X + 1;
     auto psCopy = cpu.PS;
@@ -150,20 +150,20 @@ TEST_F(StoreRegisterTests, STXZeroPageYCanStoreXRegisterIntoMemoryWhenItRaps) {
 }
 
 TEST_F(StoreRegisterTests, STAAbsoluteCanStoreARegisterIntoMemory) {
-    TestStoreRegisterAbsolute(_65C02::INS_STA_ABS, &_65C02::A);
+    TestStoreRegisterAbsolute(W65C02::INS_STA_ABS, &W65C02::A);
 }
 
 TEST_F(StoreRegisterTests, STXAbsoluteCanStoreXRegisterIntoMemory) {
-    TestStoreRegisterAbsolute(_65C02::INS_STX_ABS, &_65C02::X);
+    TestStoreRegisterAbsolute(W65C02::INS_STX_ABS, &W65C02::X);
 }
 
 TEST_F(StoreRegisterTests, STYAbsoluteCanStoreYRegisterIntoMemory) {
-    TestStoreRegisterAbsolute(_65C02::INS_STY_ABS, &_65C02::Y);
+    TestStoreRegisterAbsolute(W65C02::INS_STY_ABS, &W65C02::Y);
 }
 
 TEST_F(StoreRegisterTests, STAAbsoluteXCanStoreARegisterIntoMemory) {
     cpu.X = 1;
-    ram[0xFFFC] = _65C02::INS_STA_ABSX;
+    ram[0xFFFC] = W65C02::INS_STA_ABSX;
     ram[0xFFFD] = 0x80;
     ram[0xFFFE] = 0x44;
     ram[0x4481] = cpu.A + 1;
@@ -181,7 +181,7 @@ TEST_F(StoreRegisterTests, STAAbsoluteXCanStoreARegisterIntoMemory) {
 
 TEST_F(StoreRegisterTests, STAAbsoluteXCanStoreARegisterIntoMemoryWhenPageBounderyCrossed) {
     cpu.X = 0xFF;
-    ram[0xFFFC] = _65C02::INS_STA_ABSX;
+    ram[0xFFFC] = W65C02::INS_STA_ABSX;
     ram[0xFFFD] = 0x02;
     ram[0xFFFE] = 0x44;
     ram[0x4501] = cpu.A + 1;
@@ -199,7 +199,7 @@ TEST_F(StoreRegisterTests, STAAbsoluteXCanStoreARegisterIntoMemoryWhenPageBounde
 
 TEST_F(StoreRegisterTests, STAAbsoluteYCanStoreARegisterIntoMemory) {
     cpu.Y = 1;
-    ram[0xFFFC] = _65C02::INS_STA_ABSY;
+    ram[0xFFFC] = W65C02::INS_STA_ABSY;
     ram[0xFFFD] = 0x80;
     ram[0xFFFE] = 0x44;
     ram[0x4481] = cpu.A + 1;
@@ -212,14 +212,14 @@ TEST_F(StoreRegisterTests, STAAbsoluteYCanStoreARegisterIntoMemory) {
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - pcCopy, EXPECTED_BYTES);
     EXPECT_EQ(cpu.A, ram[0x4481]);
-    EXPECT_FALSE(cpu.PS.test(_65C02::StatusFlags::Z));
-    EXPECT_FALSE(cpu.PS.test(_65C02::StatusFlags::N));
+    EXPECT_FALSE(cpu.PS.test(W65C02::StatusFlags::Z));
+    EXPECT_FALSE(cpu.PS.test(W65C02::StatusFlags::N));
     EXPECT_EQ(cpu.PS, psCopy);
 }
 
 TEST_F(StoreRegisterTests, STAAbsoluteYCanStoreARegisterIntoMemoryWhenPageBounderyCrossed) {
     cpu.X = 0xFF;
-    ram[0xFFFC] = _65C02::INS_STA_ABSX;
+    ram[0xFFFC] = W65C02::INS_STA_ABSX;
     ram[0xFFFD] = 0x02;
     ram[0xFFFE] = 0x44;
     ram[0x4501] = cpu.A + 1;
@@ -237,7 +237,7 @@ TEST_F(StoreRegisterTests, STAAbsoluteYCanStoreARegisterIntoMemoryWhenPageBounde
 
 TEST_F(StoreRegisterTests, STAXIndirectCanStoreARegisterIntoMemory) {
     cpu.X = 0x04;
-    ram[0xFFFC] = _65C02::INS_STA_XIND;
+    ram[0xFFFC] = W65C02::INS_STA_XIND;
     ram[0xFFFD] = 0x02;
     ram[0x0006] = 0x00;
     ram[0x0007] = 0x80;
@@ -255,10 +255,10 @@ TEST_F(StoreRegisterTests, STAXIndirectCanStoreARegisterIntoMemory) {
 }
 
 TEST_F(StoreRegisterTests, STAXIndirectCanStoreARegisterIntoMemoryWhenItRaps) {
-    cpu.PS.set(_65C02::StatusFlags::Z, true);
-    cpu.PS.set(_65C02::StatusFlags::N, true);
+    cpu.PS.set(W65C02::StatusFlags::Z, true);
+    cpu.PS.set(W65C02::StatusFlags::N, true);
     cpu.X = 0xFF;
-    ram[0xFFFC] = _65C02::INS_STA_XIND;
+    ram[0xFFFC] = W65C02::INS_STA_XIND;
     ram[0xFFFD] = 0x00;
     ram[0x00FF] = 0x00;
     ram[0x0000] = 0x80;
@@ -277,7 +277,7 @@ TEST_F(StoreRegisterTests, STAXIndirectCanStoreARegisterIntoMemoryWhenItRaps) {
 
 TEST_F(StoreRegisterTests, STAIndirectYCanStoreARegisterIntoMemory) {
     cpu.Y = 0x04;
-    ram[0xFFFC] = _65C02::INS_STA_INDY;
+    ram[0xFFFC] = W65C02::INS_STA_INDY;
     ram[0xFFFD] = 0x02;
     ram[0x0002] = 0x00;
     ram[0x0003] = 0x80;
@@ -291,14 +291,14 @@ TEST_F(StoreRegisterTests, STAIndirectYCanStoreARegisterIntoMemory) {
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - pcCopy, EXPECTED_BYTES);
     EXPECT_EQ(cpu.A, ram[0x8004]);
-    EXPECT_FALSE(cpu.PS.test(_65C02::StatusFlags::Z));
-    EXPECT_FALSE(cpu.PS.test(_65C02::StatusFlags::N));
+    EXPECT_FALSE(cpu.PS.test(W65C02::StatusFlags::Z));
+    EXPECT_FALSE(cpu.PS.test(W65C02::StatusFlags::N));
     EXPECT_EQ(cpu.PS, psCopy);
 }
 
 TEST_F(StoreRegisterTests, STAIndirectYCanStoreARegisterIntoMemoryWhenPageBounderyCrossed) {
     cpu.Y = 0xFF;
-    ram[0xFFFC] = _65C02::INS_STA_INDY;
+    ram[0xFFFC] = W65C02::INS_STA_INDY;
     ram[0xFFFD] = 0x02;
     ram[0x0002] = 0x02;
     ram[0x0003] = 0x80;
@@ -316,7 +316,7 @@ TEST_F(StoreRegisterTests, STAIndirectYCanStoreARegisterIntoMemoryWhenPageBounde
 }
 
 TEST(ProgramLoggingOutput, StoreRegisterLogging) {
-    System system{0x0000, 0x3FFF, 0x6000, 0x7FFF, 0x8000, 0xFFFF, .001};
+    System system{0x0000, 0x3FFF, 0x6000, 0x7FFF, 0x8000, 0xFFFF, 1};
     system.executeProgram("EmulationOutFiles//emulation_store_register.out", 119, true,
                           "EmulationLogFiles//emulation_store_register.txt");
     std::ifstream emulation_logging("EmulationLogFiles//emulation_store_register.txt"),

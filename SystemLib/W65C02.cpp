@@ -1,15 +1,15 @@
 #include "Bus.h"
 
-_65C02::_65C02(double Mhz) : cycles{Mhz} {
+W65C02::W65C02(double Mhz) : cycles{Mhz} {
     reset();
-    using CPU = _65C02;
+    using CPU = W65C02;
     opCodeMatrix.reserve(256);
 
     opCodeMatrix =
             {
                     {&CPU::BRK, &CPU::stackB    }, {&CPU::ORA, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::TSB, &CPU::zeroPageB   }, {&CPU::ORA, &CPU::zeroPageA  }, {&CPU::ASL, &CPU::zeroPageB  }, {&CPU::RMB0, &CPU::zeroPageC }, {&CPU::PHP, &CPU::stackE      }, {&CPU::ORA, &CPU::immediate  }, {&CPU::ASL, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::TSB, &CPU::absoluteB                  }, {&CPU::ORA, &CPU::absoluteA  }, {&CPU::ASL, &CPU::absoluteB  }, {&CPU::BBR0, &CPU::relativeB },
                     {&CPU::BPL, &CPU::relativeA }, {&CPU::ORA, &CPU::zeroPageIndirectIndexed }, {&CPU::ORA, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::TRB, &CPU::zeroPageB   }, {&CPU::ORA, &CPU::zeroPageXA }, {&CPU::ASL, &CPU::zeroPageXB }, {&CPU::RMB1, &CPU::zeroPageC }, {&CPU::CLC, &CPU::impliedA    }, {&CPU::ORA, &CPU::absoluteY  }, {&CPU::INC, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::TRB, &CPU::absoluteB                  }, {&CPU::ORA, &CPU::absoluteXA }, {&CPU::ASL, &CPU::absoluteXB }, {&CPU::BBR1, &CPU::relativeB },
-                    {&CPU::JSR, &CPU::absoluteD }, {&CPU::AND, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::BIT, &CPU::zeroPageB   }, {&CPU::AND, &CPU::zeroPageA  }, {&CPU::ROL, &CPU::zeroPageB  }, {&CPU::RMB2, &CPU::zeroPageC }, {&CPU::PLP, &CPU::stackF      }, {&CPU::AND, &CPU::immediate  }, {&CPU::ROL, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::BIT, &CPU::absoluteA                  }, {&CPU::AND, &CPU::absoluteA  }, {&CPU::ROL, &CPU::absoluteB  }, {&CPU::BBR2, &CPU::relativeB },
+                    {&CPU::JSR, &CPU::absoluteD }, {&CPU::AND, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::BIT, &CPU::zeroPageA   }, {&CPU::AND, &CPU::zeroPageA  }, {&CPU::ROL, &CPU::zeroPageB  }, {&CPU::RMB2, &CPU::zeroPageC }, {&CPU::PLP, &CPU::stackF      }, {&CPU::AND, &CPU::immediate  }, {&CPU::ROL, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::BIT, &CPU::absoluteA                  }, {&CPU::AND, &CPU::absoluteA  }, {&CPU::ROL, &CPU::absoluteB  }, {&CPU::BBR2, &CPU::relativeB },
                     {&CPU::BMI, &CPU::relativeA }, {&CPU::AND, &CPU::zeroPageIndirectIndexed }, {&CPU::AND, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::BIT, &CPU::zeroPageXA  }, {&CPU::AND, &CPU::zeroPageXA }, {&CPU::ROL, &CPU::zeroPageXB }, {&CPU::RMB3, &CPU::zeroPageC }, {&CPU::SEC, &CPU::impliedA    }, {&CPU::AND, &CPU::absoluteY  }, {&CPU::DEC, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::BIT, &CPU::absoluteXA                 }, {&CPU::AND, &CPU::absoluteXA }, {&CPU::ROL, &CPU::absoluteXB }, {&CPU::BBR3, &CPU::relativeB },
                     {&CPU::RTI, &CPU::stackC    }, {&CPU::EOR, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::XXX, &CPU::immediate   }, {&CPU::EOR, &CPU::zeroPageA  }, {&CPU::LSR, &CPU::zeroPageB  }, {&CPU::RMB4, &CPU::zeroPageC }, {&CPU::PHA, &CPU::stackE      }, {&CPU::EOR, &CPU::immediate  }, {&CPU::LSR, &CPU::accumulator    }, {&CPU::XXX, &CPU::immediate  }, {&CPU::JMP, &CPU::absoluteC                  }, {&CPU::EOR, &CPU::absoluteA  }, {&CPU::LSR, &CPU::absoluteB  }, {&CPU::BBR4, &CPU::relativeB },
                     {&CPU::BVC, &CPU::relativeA }, {&CPU::EOR, &CPU::zeroPageIndirectIndexed }, {&CPU::EOR, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::XXX, &CPU::immediate   }, {&CPU::EOR, &CPU::zeroPageXA }, {&CPU::LSR, &CPU::zeroPageXB }, {&CPU::RMB5, &CPU::zeroPageC }, {&CPU::CLI, &CPU::impliedA    }, {&CPU::EOR, &CPU::absoluteY  }, {&CPU::PHY, &CPU::stackE         }, {&CPU::XXX, &CPU::immediate  }, {&CPU::XXX, &CPU::immediate                  }, {&CPU::EOR, &CPU::absoluteXA }, {&CPU::LSR, &CPU::absoluteXB }, {&CPU::BBR5, &CPU::relativeB },
@@ -30,7 +30,7 @@ _65C02::_65C02(double Mhz) : cycles{Mhz} {
  * Connects the cpu to a bus by setting this->bus to the Bus* passed in
  * @param b Pointer to Bus which the cpu is to be linked to
  */
-void _65C02::connectBus(Bus *b) {
+void W65C02::connectBus(Bus *b) {
     this->bus = b;
 }
 
@@ -38,7 +38,7 @@ void _65C02::connectBus(Bus *b) {
  * resets the cpu by setting PC to 0xFFFE, SP to 0xFF, PS to 0x00, and A, X, and Y registers to 0x00
  * @param pc the value to set the PC. Default value of 0xFFFE.
  */
-void _65C02::reset(word pc) {
+void W65C02::reset(word pc) {
     PC = pc;
     SP = 0xFF;
     PS.reset();
@@ -53,22 +53,22 @@ void _65C02::reset(word pc) {
  * @param address The address to read from
  * @return The value at the given address
  */
-byte _65C02::readByte(word address) {
+byte W65C02::readByte(word address) {
     CyclesIncrementer cd(cycles);
     return bus->read(address);
 }
 
 /**
- * Calls {@link _65C02}
+ * Calls {@link W65C02}
  * @param address
  * @return
  */
-word _65C02::readWord(word address) {
+word W65C02::readWord(word address) {
     word data = readByte(address);
     return data | (readByte(address + 1) << 8);
 }
 
-byte _65C02::fetchByte() {
+byte W65C02::fetchByte() {
     return readByte(PC++);
 }
 
@@ -79,7 +79,7 @@ byte _65C02::fetchByte() {
     * as a word so it will be 0034. Then it reads the next byte from
     * memory which is 12 shifts it to the left by 8 bits = 1200 and
     * then does 0034 | 1200 = 1234 which is what we wanted.*/
-word _65C02::fetchWord() {
+word W65C02::fetchWord() {
     word data = fetchByte();
     return data | (fetchByte() << 8);
 }
@@ -88,42 +88,46 @@ word _65C02::fetchWord() {
      * 0x1234 will be stored as 34 12 so write LSB bytes at low address
      * and MSB bytes at high address.
      */
-void _65C02::writeWord(word data, word address) {
+void W65C02::writeWord(word data, word address) {
     writeByte(data & 0xFF, address);
     writeByte(data >> 8, address + 1);
 }
 
-void _65C02::writeByte(byte data, word address) {
+void W65C02::writeByte(byte data, word address) {
     bus->write(data, address);
     ++cycles;
 }
 
-void _65C02::bitInstructionSetStatus(byte value) {
+void W65C02::bitInstructionSetStatus(byte value, bool immediateMode) {
+    if(immediateMode) {
+        PS.set(StatusFlags::Z, value == 0);
+    }
     NZVSetStatus(value);
+
 }
 
-void _65C02::pushByteToStack(byte data) {
+void W65C02::pushByteToStack(byte data) {
     writeByte(data, SPToAddress());
     --SP;
 }
 
-void _65C02::pushWordToStack(word data) {
+void W65C02::pushWordToStack(word data) {
     pushByteToStack((data & 0xFF00) >> 8);  //PCH
     return pushByteToStack(data); //PCL
 }
 
-byte _65C02::pullByteFromStack() {
+byte W65C02::pullByteFromStack() {
     byte data = readByte(SPToAddress());
     ++SP;
     return data;
 }
 
-byte _65C02::readByteFromStack() {
+byte W65C02::readByteFromStack() {
     return readByte(SPToAddress());
 }
 
 //return the SP as a full 16 bit address in the first page even though SP is a byte
-word _65C02::SPToAddress() const {
+word W65C02::SPToAddress() const {
     return 0x100 | SP;
 }
 
@@ -132,7 +136,7 @@ word _65C02::SPToAddress() const {
  * LDY, CPY, CPX, LDX, ORA, AND, EOR, ADC, BIT, LDA, CMP, SBC
  * @return The immediate address
  */
-word _65C02::immediate(byte _65C02::*, const std::function<byte(byte)>&) {
+word W65C02::immediate(byte W65C02::*, const std::function<byte(byte)>&) {
     return fetchByte();
 }
 
@@ -143,7 +147,7 @@ word _65C02::immediate(byte _65C02::*, const std::function<byte(byte)>&) {
  * @return The data at computed address if instruction is a read instruction or 0
  * which is a filler value if the instruction is a write instruction
  */
-word _65C02::absoluteA(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::absoluteA(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     word address{fetchWord()};
     if(Register) {
         writeByte(this->*Register, address);
@@ -151,7 +155,7 @@ word _65C02::absoluteA(byte _65C02::* Register, const std::function<byte(byte)>&
     } return readByte(address);
 }
 
-word _65C02::absoluteB(byte _65C02::*, const std::function<byte(byte)>& op) {
+word W65C02::absoluteB(byte W65C02::*, const std::function<byte(byte)>& op) {
     word address{fetchWord()};
     byte data{readByte(address)};
     readByte(address);
@@ -164,7 +168,7 @@ word _65C02::absoluteB(byte _65C02::*, const std::function<byte(byte)>& op) {
  * JMP
  * @return The absolute address which will be the new PC
  */
-word _65C02::absoluteC(byte _65C02::*, const std::function<byte(byte)>& op) {
+word W65C02::absoluteC(byte W65C02::*, const std::function<byte(byte)>& op) {
     return fetchWord();
 }
 
@@ -173,7 +177,7 @@ word _65C02::absoluteC(byte _65C02::*, const std::function<byte(byte)>& op) {
  * JSR
  * @return The absolute address which will be the new PC
  */
-word _65C02::absoluteD(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::absoluteD(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte subAddrLow = fetchByte();
     readByte(SPToAddress());
     pushWordToStack(PC);
@@ -187,7 +191,7 @@ word _65C02::absoluteD(byte _65C02::* Register, const std::function<byte(byte)>&
  * @return The data at computed address if instruction is a read instruction or 0
  * which is a filler value if the instruction is a write instruction
  */
-word _65C02::zeroPageA(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::zeroPageA(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte zeroPage{fetchByte()};
     if(Register) {
         writeByte(this->*Register, zeroPage);
@@ -195,7 +199,7 @@ word _65C02::zeroPageA(byte _65C02::* Register, const std::function<byte(byte)>&
     } return readByte(zeroPage);
 }
 
-word _65C02::zeroPageB(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::zeroPageB(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte zeroPage{fetchByte()};
     byte data{readByte(zeroPage)};
     readByte(zeroPage + 1);
@@ -203,7 +207,7 @@ word _65C02::zeroPageB(byte _65C02::* Register, const std::function<byte(byte)>&
     return 0;
 }
 
-word _65C02::zeroPageC(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::zeroPageC(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte zeroPage{fetchByte()};
     byte data{readByte(zeroPage)};
     readByte(zeroPage);
@@ -211,7 +215,7 @@ word _65C02::zeroPageC(byte _65C02::* Register, const std::function<byte(byte)>&
     return 0;
 }
 
-word _65C02::accumulator(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::accumulator(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     this->*Register = op(this->*Register);
     return readByte(PC);
 }
@@ -221,21 +225,21 @@ word _65C02::accumulator(byte _65C02::* Register, const std::function<byte(byte)
  * DEY, INY, INX, DEX, NOP, TYA, TAY, TXA, TXS, TAX, CLC, SEC, CLI, SEI, CLV, CLD, SED
  * @return
  */
-word _65C02::impliedA(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::impliedA(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     return readByte(PC);
 }
 
 //TODO - wait for interupt
-word _65C02::impliedB(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::impliedB(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     return 0;
 }
 
 //TODO - stop the clock
-word _65C02::impliedC(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::impliedC(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     return 0;
 }
 
-word _65C02::zeroPageIndirectIndexed(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::zeroPageIndirectIndexed(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte zpAddress = fetchByte();
     word address = readByte(zpAddress) | (readByte(static_cast<byte>(zpAddress + 1)) << 8);
     if(((address & 0xFF) + Y) > 0xFF and !Register)
@@ -247,7 +251,7 @@ word _65C02::zeroPageIndirectIndexed(byte _65C02::* Register, const std::functio
     } return readByte(address + Y);
 }
 
-word _65C02::zeroPageIndexedIndirect(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::zeroPageIndexedIndirect(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte zeroPage{readByte(PC)};
     fetchByte();
     word effectiveAddress = readByte(static_cast<byte>(zeroPage + X)) | (readByte(static_cast<byte>(zeroPage + X + 1)) << 8);
@@ -257,7 +261,7 @@ word _65C02::zeroPageIndexedIndirect(byte _65C02::* Register, const std::functio
     } return readByte(effectiveAddress);
 }
 
-word _65C02::zeroPageXA(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::zeroPageXA(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte address{fetchByte()};
     byte effectiveAddress = address + X;
     readByte(PC - 1);
@@ -267,9 +271,9 @@ word _65C02::zeroPageXA(byte _65C02::* Register, const std::function<byte(byte)>
     } return readByte(effectiveAddress);
 }
 
-//TODO - test this functions correctness it is gaurenteed to be worng I just dont
-// yet know what right it
-word _65C02::zeroPageXB(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+//TODO - test this functions correctness it is guaranteed to be wrong I just dont
+// yet know what right is
+word W65C02::zeroPageXB(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte zeroPage{readByte(PC)};
     fetchByte();
     byte data{readByte(zeroPage + X)};
@@ -278,7 +282,7 @@ word _65C02::zeroPageXB(byte _65C02::* Register, const std::function<byte(byte)>
     return 0;
 }
 
-word _65C02::zeroPageY(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::zeroPageY(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte address{fetchByte()};
     byte effectiveAddress = address + Y;
     readByte(PC - 1);
@@ -289,7 +293,7 @@ word _65C02::zeroPageY(byte _65C02::* Register, const std::function<byte(byte)>&
     } else return readByte(effectiveAddress);
 }
 
-word _65C02::absoluteXA(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::absoluteXA(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     word address = fetchWord();
     dword effectiveAddress = address + X;
     if(Register) {
@@ -310,7 +314,7 @@ word _65C02::absoluteXA(byte _65C02::* Register, const std::function<byte(byte)>
 
 //TODO - test this functions correctness it is gaurenteed to be worng I just dont
 // yet know what right it
-word _65C02::absoluteXB(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::absoluteXB(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte AAL{fetchByte()};
     byte AAH{fetchByte()};
     word address = (AAH << 4) | AAL;
@@ -321,7 +325,7 @@ word _65C02::absoluteXB(byte _65C02::* Register, const std::function<byte(byte)>
     return 0;
 }
 
-word _65C02::absoluteY(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::absoluteY(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     word address = fetchWord();
     dword effectiveAddress = address + Y;
     if(Register) {
@@ -340,7 +344,7 @@ word _65C02::absoluteY(byte _65C02::* Register, const std::function<byte(byte)>&
     return 0;
 }
 
-word _65C02::relativeA(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::relativeA(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte value{fetchByte()};
     if(op(0)) {     //Then we should branch. the value passed to op is garbage. It isn't needed.
         readByte(PC);
@@ -353,7 +357,7 @@ word _65C02::relativeA(byte _65C02::* Register, const std::function<byte(byte)>&
 }
 
 //TODO - test the correctness of this function it is gautenteed to be wrong.
-word _65C02::relativeB(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::relativeB(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte value{fetchByte()};
     byte zeroPage{fetchByte()};
     readByte(zeroPage);
@@ -369,28 +373,28 @@ word _65C02::relativeB(byte _65C02::* Register, const std::function<byte(byte)>&
     return PC;
 }
 
-word _65C02::absoluteIndirect(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::absoluteIndirect(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     word address{fetchWord()};
     readByte(--PC);
     return readByte(address) | (readByte(address + 1) << 8);
 }
 
-word _65C02::stackA(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::stackA(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     readByte(PC);
     readByte(PC);
     pushWordToStack(SPToAddress());
     return 0;
 }
 
-word _65C02::stackB(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::stackB(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     return 0;
 }
 
-word _65C02::stackC(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::stackC(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     return 0;
 }
 
-word _65C02::stackD(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::stackD(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     readByte(PC);
     pullByteFromStack();
     byte PCL = pullByteFromStack();
@@ -400,25 +404,25 @@ word _65C02::stackD(byte _65C02::* Register, const std::function<byte(byte)>& op
     return PC + 1;
 }
 
-word _65C02::stackE(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::stackE(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     readByte(PC);
     pushByteToStack(this->*Register);
     return 0;
 }
 
-word _65C02::stackF(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::stackF(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     readByte(PC);
     pullByteFromStack();
     return readByte(SPToAddress());
 }
 
-word _65C02::absoluteIndexedIndirect(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::absoluteIndexedIndirect(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     word address{fetchWord()};
     readByte(--PC);
     return readByte(address + X) | (readByte(address + X + 1) << 8);
 }
 
-word _65C02::zeroPageIndirect(byte _65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::zeroPageIndirect(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte ZPAddr = fetchByte();
     word effectiveAddress = readByte(ZPAddr) | (readByte((byte)(ZPAddr + 1)) << 8);
     if(Register) {
@@ -427,15 +431,15 @@ word _65C02::zeroPageIndirect(byte _65C02::* Register, const std::function<byte(
     } else return readByte(effectiveAddress);
 }
 
-void _65C02::execute(uint64_t instructionsToExecute) {
+void W65C02::execute(uint64_t numInstructionsToExecute) {
     Opcode opcode{};
-    while(instructionsToExecute--) {
+    while(numInstructionsToExecute--) {
         opcode = opCodeMatrix[fetchByte()];
         (this->*(opcode.instruction))(opcode.addrMode);
     }
 }
 
-void _65C02::ADC(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::ADC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     byte value = (this->*addrMode)(nullptr, nullptr);
     word result = (word)A + (word)value + (word)PS.test(StatusFlags::C);
     bool SB1 = A >> SIGN_BIT_POS, SB2 = value >> SIGN_BIT_POS, SBR = result >> SIGN_BIT_POS;
@@ -444,138 +448,144 @@ void _65C02::ADC(word (_65C02::* addrMode)(byte _65C02::*, const std::function<b
     loadRegister(A, (byte)(result & MAX_BYTE));
 }
 
-void _65C02::AND(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::AND(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     loadRegister(A, A & (this->*addrMode)(nullptr, nullptr));
 }
 
-void _65C02::ASL(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::A, [this](byte a) {
+void W65C02::ASL(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::A, [this](byte a) {
         PS.set(StatusFlags::C, a & 0X80);
         NZSetStatus(a << 1);
         return a << 1;
     });
 }
 
-void _65C02::BBR0(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBR0(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return !(data & 0b00000001);
     });
 }
 
-void _65C02::BBR1(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBR1(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return !(data & 0b00000010);
     });
 }
 
-void _65C02::BBR2(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBR2(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return !(data & 0b00000100);
     });
 }
 
-void _65C02::BBR3(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBR3(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return !(data & 0b00001000);
     });
 }
 
-void _65C02::BBR4(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBR4(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return !(data & 0b00010000);
     });
 }
 
-void _65C02::BBR5(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBR5(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return !(data & 0b00100000);
     });
 }
 
-void _65C02::BBR6(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBR6(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return !(data & 0b01000000);
     });
 }
 
-void _65C02::BBR7(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBR7(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return !(data & 0b10000000);
 });
 
 }
 
-void _65C02::BBS0(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBS0(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return (data & 0b00000001);
     });
 }
 
-void _65C02::BBS1(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBS1(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return (data & 0b00000010);
     });
 }
 
-void _65C02::BBS2(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBS2(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return (data & 0b00000100);
     });
 }
 
-void _65C02::BBS3(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBS3(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return (data & 0b00001000);
     });
 }
 
-void _65C02::BBS4(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBS4(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return (data & 0b00010000);
     });
 }
 
-void _65C02::BBS5(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBS5(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return (data & 0b00100000);
     });
 }
 
-void _65C02::BBS6(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBS6(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return (data & 0b01000000);
     });
 }
 
-void _65C02::BBS7(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte data) {
+void W65C02::BBS7(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    PC = (this->*addrMode)(nullptr, [](byte data) {
         return (data & 0b10000000);
     });
 }
 
-void _65C02::BCC(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::BCC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
         return !PS.test(StatusFlags::C);    //return true for should branch false otherwise
     });
 }
 
-void _65C02::BCS(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::BCS(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
         return PS.test(StatusFlags::C) ? 1 : 0;    //return true for should branch false otherwise
     });
 }
 
-void _65C02::BEQ(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::BEQ(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
         return PS.test(StatusFlags::Z);    //return true for should branch false otherwise
     });
 }
 
-void _65C02::BIT(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    bitInstructionSetStatus(A & (this->*addrMode)(nullptr, nullptr));
+void W65C02::BIT(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    byte memVal = (this->*addrMode)(nullptr, nullptr);
+    byte result = A & memVal;
+    PS.set(StatusFlags::Z, result == 0);
+    if(addrMode != &W65C02::immediate) {
+        PS.set(StatusFlags::N, (bool)(memVal & 0x80));
+        PS.set(StatusFlags::V, (bool)(memVal & 0x40));
+    }
 }
 
-void _65C02::BMI(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::BMI(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
         return PS.test(StatusFlags::N);    //return true for should branch false otherwise
     });
@@ -583,239 +593,239 @@ void _65C02::BMI(word (_65C02::* addrMode)(byte _65C02::*, const std::function<b
 
 //I dont dare to say that this is clean code. This is dirty code but sometimes if you try to find the ultimate
 //solution to every problem you spin your wheels for ages. It works. The end.
-void _65C02::BNE(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::BNE(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
         return !PS.test(StatusFlags::Z);    //return true for should branch false otherwise
     });
 }
 
-void _65C02::BPL(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::BPL(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
         return !PS.test(StatusFlags::N);    //return true for should branch false otherwise
     });
 }
 
-void _65C02::BRA(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::BRA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
         return 1;    //branch always
     });
 }
 
-void _65C02::BRK(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::BRK(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
 
 }
 
-void _65C02::BVC(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::BVC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
         return !PS.test(StatusFlags::V);    //return true for should branch false otherwise
     });
 }
 
-void _65C02::BVS(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::BVS(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, [this](byte) {
         return PS.test(StatusFlags::V);    //return true for should branch false otherwise
     });
 }
 
-void _65C02::CLC(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::CLC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     PS.reset(StatusFlags::C);
 }
 
-void _65C02::CLD(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::CLD(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     PS.reset(StatusFlags::D);
 }
 
-void _65C02::CLI(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::CLI(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     PS.reset(StatusFlags::I);
 }
 
-void _65C02::CLV(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::CLV(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     PS.reset(StatusFlags::V);
 }
 
-void _65C02::CMP(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::CMP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     byte value = (this->*addrMode)(nullptr, nullptr);
     PS.set(StatusFlags::C, A >= value);
     PS.set(StatusFlags::Z, A == value);
     PS.set(StatusFlags::N, A < value);
 }
 
-void _65C02::CPX(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::CPX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     byte value = (this->*addrMode)(nullptr, nullptr);
     PS.set(StatusFlags::C, X >= value);
     PS.set(StatusFlags::Z, X == value);
     PS.set(StatusFlags::N, X < value);
 }
 
-void _65C02::CPY(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::CPY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     byte value = (this->*addrMode)(nullptr, nullptr);
     PS.set(StatusFlags::C, Y >= value);
     PS.set(StatusFlags::Z, Y == value);
     PS.set(StatusFlags::N, Y < value);
 }
 
-void _65C02::DEC(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::A, [this](byte a) {
+void W65C02::DEC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::A, [this](byte a) {
         NZSetStatus(a - 1);
         return a - 1;
     });
 }
 
-void _65C02::DEX(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::DEX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     loadRegister(X, X - 1);
 }
 
-void _65C02::DEY(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::DEY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     loadRegister(Y, Y - 1);
 }
 
-void _65C02::EOR(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::EOR(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     loadRegister(A, A ^ (this->*addrMode)(nullptr, nullptr));
 }
 
-void _65C02::INC(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::A, [this](byte a) {
+void W65C02::INC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::A, [this](byte a) {
         NZSetStatus(a + 1);
         return a + 1;
     });
 }
 
-void _65C02::INX(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::INX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     loadRegister(X, X + 1);
 }
 
-void _65C02::INY(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::INY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     loadRegister(Y, Y + 1);
 }
 
-void _65C02::JMP(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::JMP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, nullptr);
 }
 
-void _65C02::JSR(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::JSR(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, nullptr);
 }
 
-void _65C02::LDA(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::LDA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     loadRegister(A, (this->*addrMode)(nullptr, nullptr));
 }
 
-void _65C02::LDX(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::LDX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     loadRegister(X, (this->*addrMode)(nullptr, nullptr));
 }
 
-void _65C02::LDY(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::LDY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     loadRegister(Y, (this->*addrMode)(nullptr, nullptr));
 }
 
-void _65C02::LSR(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::A, [this](byte a) {
+void W65C02::LSR(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::A, [this](byte a) {
         PS.set(StatusFlags::C, a & 0x01);
         NZSetStatus(a >> 1);
         return a >> 1;
     });
 }
 
-void _65C02::NOP(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::NOP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     readByte(PC);
 }
 
-void _65C02::ORA(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::ORA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     loadRegister(A, A | (this->*addrMode)(nullptr, nullptr));
 }
 
-void _65C02::PHA(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::A, nullptr);
+void W65C02::PHA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::A, nullptr);
 }
 
-void _65C02::PHP(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::PHP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PS.set(StatusFlags::B);
     PS_byte = PS.to_ulong();
-    (this->*addrMode)(&_65C02::PS_byte, nullptr);
+    (this->*addrMode)(&W65C02::PS_byte, nullptr);
 }
 
-void _65C02::PHX(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::X, nullptr);
+void W65C02::PHX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::X, nullptr);
 }
 
-void _65C02::PHY(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::Y, nullptr);
+void W65C02::PHY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::Y, nullptr);
 }
 
-void _65C02::PLA(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::PLA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     loadRegister(A, (this->*addrMode)(nullptr, nullptr));
 }
 
-void _65C02::PLP(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::PLP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PS = (this->*addrMode)(nullptr, nullptr);
 }
 
-void _65C02::PLX(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::PLX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     loadRegister(X, (this->*addrMode)(nullptr, nullptr));
 }
 
-void _65C02::PLY(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::PLY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     loadRegister(Y, (this->*addrMode)(nullptr, nullptr));
 }
 
-void _65C02::RMB0(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::RMB0(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a & 0b11111110;
     });
 }
 
-void _65C02::RMB1(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::RMB1(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a & 0b11111101;
     });
 }
 
-void _65C02::RMB2(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::RMB2(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a & 0b11111011;
     });
 }
 
-void _65C02::RMB3(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::RMB3(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a & 0b11110111;
     });
 }
 
-void _65C02::RMB4(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::RMB4(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a & 0b11101111;
     });
 }
 
-void _65C02::RMB5(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::RMB5(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a & 0b11011111;
     });
 }
 
-void _65C02::RMB6(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::RMB6(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a & 0b10111111;
     });
 }
 
-void _65C02::RMB7(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::RMB7(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a & 0b01111111;
     });
 }
 
-void _65C02::ROL(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::A, [this](byte a) {
+void W65C02::ROL(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::A, [this](byte a) {
         byte result = (a << 1) | PS.test(StatusFlags::C);
         PS.set(StatusFlags::C, a & 0X80);
         NZSetStatus(result);
@@ -823,8 +833,8 @@ void _65C02::ROL(word (_65C02::* addrMode)(byte _65C02::*, const std::function<b
     });
 }
 
-void _65C02::ROR(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::A, [this](byte a) {
+void W65C02::ROR(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::A, [this](byte a) {
         byte result = (a >> 1) | (PS.test(StatusFlags::C) << SIGN_BIT_POS);
         PS.set(StatusFlags::C, a & 0x01);
         NZSetStatus(result);
@@ -832,15 +842,15 @@ void _65C02::ROR(word (_65C02::* addrMode)(byte _65C02::*, const std::function<b
     });
 }
 
-void _65C02::RTI(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::RTI(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
 
 }
 
-void _65C02::RTS(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::RTS(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     PC = (this->*addrMode)(nullptr, nullptr);
 }
 
-void _65C02::SBC(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::SBC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     byte value = (this->*addrMode)(nullptr, nullptr);
     word result = (word)A + (word)~value + (word)(PS.test(StatusFlags::C));
     bool SB1 = A >> SIGN_BIT_POS, SB2 = value >> SIGN_BIT_POS, SBR = (result & 0xFF) >> SIGN_BIT_POS;
@@ -849,164 +859,164 @@ void _65C02::SBC(word (_65C02::* addrMode)(byte _65C02::*, const std::function<b
     loadRegister(A, (byte)(result & MAX_BYTE));
 }
 
-void _65C02::SEC(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::SEC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     PS.set(StatusFlags::C);
 }
 
-void _65C02::SED(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::SED(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     PS.set(StatusFlags::D);
 }
 
-void _65C02::SEI(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::SEI(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     PS.set(StatusFlags::I);
 }
 
-void _65C02::SMB0(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::SMB0(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a | 0b00000001;
     });
 }
 
-void _65C02::SMB1(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::SMB1(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a | 0b00000010;
     });
 }
 
-void _65C02::SMB2(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::SMB2(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a | 0b00000100;
     });
 }
 
-void _65C02::SMB3(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::SMB3(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a | 0b00001000;
     });
 }
 
-void _65C02::SMB4(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::SMB4(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a | 0b00010000;
     });
 }
 
-void _65C02::SMB5(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::SMB5(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a | 0b00100000;
     });
 }
 
-void _65C02::SMB6(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::SMB6(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a | 0b01000000;
     });
 }
 
-void _65C02::SMB7(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(nullptr, [this](byte a) {
+void W65C02::SMB7(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(nullptr, [](byte a) {
         return a | 0b10000000;
     });
 }
 
-void _65C02::STA(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::A, nullptr);
+void W65C02::STA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::A, nullptr);
 }
 
-void _65C02::STP(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::STP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
 
 }
 
-void _65C02::STX(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::X, nullptr);
+void W65C02::STX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::X, nullptr);
 }
 
-void _65C02::STY(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::Y, nullptr);
+void W65C02::STY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::Y, nullptr);
 }
 
-void _65C02::STZ(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::ZERO, nullptr);
+void W65C02::STZ(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::ZERO, nullptr);
 }
 
-void _65C02::TAX(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::TAX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     loadRegister(X, A);
 }
 
-void _65C02::TAY(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::TAY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     loadRegister(Y, A);
 }
 
-void _65C02::TRB(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::A, [this](byte a) {
+void W65C02::TRB(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::A, [this](byte a) {
         PS.set(StatusFlags::Z, (A & a) == 0);
         return ~A & a;
     });
 }
 
-void _65C02::TSB(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
-    (this->*addrMode)(&_65C02::A, [this](byte a) {
+void W65C02::TSB(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
+    (this->*addrMode)(&W65C02::A, [this](byte a) {
         PS.set(StatusFlags::Z, (A & a) == 0);
         return A | a;
     });
 }
 
-void _65C02::TSX(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::TSX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     loadRegister(X, SP);
 }
 
-void _65C02::TXA(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::TXA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     loadRegister(A, X);
 }
 
-void _65C02::TXS(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::TXS(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     SP = X;
 }
 
-void _65C02::TYA(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::TYA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     (this->*addrMode)(nullptr, nullptr);
     loadRegister(A, Y);
 }
 
-void _65C02::WAI(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::WAI(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
 
 }
 
-void _65C02::XXX(word (_65C02::* addrMode)(byte _65C02::*, const std::function<byte(byte)>&)) {
+void W65C02::XXX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     //NOP(addrMode);
     exit(-1);
 }
 
-void _65C02::NZSetStatus(byte value) {
+void W65C02::NZSetStatus(byte value) {
     PS.set(StatusFlags::Z, value == 0);
     PS.set(StatusFlags::N , value >> SIGN_BIT_POS);
 }
 
-void _65C02::NZCSetStatus(byte value) {
+void W65C02::NZCSetStatus(byte value) {
     NZSetStatus(value);
     PS.set(StatusFlags::C, value >> CARRY_BIT_POS);
 }
 
-void _65C02::NZVSetStatus(byte value) {
+void W65C02::NZVSetStatus(byte value) {
     PS.set(StatusFlags::Z, value == 0);
     PS.set(StatusFlags::N , value >> SIGN_BIT_POS);
     PS.set(StatusFlags::V, (value & OVERFLOW_BIT_MASK) >> OVERFLOW_BIT_POS);
 }
 
-void _65C02::loadRegister(byte& Register, byte value) {
+void W65C02::loadRegister(byte& Register, byte value) {
     Register = value;
     NZSetStatus(value);
 }
 
-void _65C02::setCycleDuration(double Mhz) {
+void W65C02::setCycleDuration(double Mhz) {
     cycles.setCycleDuration(Mhz);
 }
 

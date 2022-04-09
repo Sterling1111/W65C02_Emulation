@@ -4,7 +4,7 @@
 class JumpsAndCallsTests : public testing::Test {
 public:
     System system{0x0000, 0xFFFF, -1, -1, -1, -1, .1};
-    _65C02& cpu = system.cpu;
+    W65C02& cpu = system.cpu;
     RAM& ram = system.ram;
     virtual void SetUp() {
         cpu.reset();
@@ -14,7 +14,7 @@ public:
 };
 
 TEST_F(JumpsAndCallsTests, JSRCanJumpToSubroutine) {
-    ram[0xFFFC] = _65C02::INS_JSR;     //6 cycles
+    ram[0xFFFC] = W65C02::INS_JSR;     //6 cycles
     ram[0xFFFD] = 0x00;
     ram[0xFFFE] = 0x80;
     auto psCopy = cpu.PS;
@@ -34,7 +34,7 @@ TEST_F(JumpsAndCallsTests, RTSCanReturnFromSubroutine) {
     ram[0x1FF] = 0xFF;
     ram[0x1FE] = 0x02;
     cpu.SP = 0xFD;
-    ram[0x8000] = _65C02::INS_RTS;
+    ram[0x8000] = W65C02::INS_RTS;
     auto psCopy = cpu.PS;
     constexpr byte EXPECTED_CYCLES = 6;
     cpu.execute();
@@ -46,12 +46,12 @@ TEST_F(JumpsAndCallsTests, RTSCanReturnFromSubroutine) {
 }
 
 TEST_F(JumpsAndCallsTests, JSRAndRTSCanJumpToAndReturnFromSubroutine) {
-    ram[0xFFFC] = _65C02::INS_JSR;     //6 cycles
+    ram[0xFFFC] = W65C02::INS_JSR;     //6 cycles
     ram[0xFFFD] = 0x00;
     ram[0xFFFE] = 0x80;
-    ram[0x8000] = _65C02::INS_LDA_IM;  //2 cycles
+    ram[0x8000] = W65C02::INS_LDA_IM;  //2 cycles
     ram[0x8001] = 0x42;
-    ram[0x8002] = _65C02::INS_RTS;     //6 cycles
+    ram[0x8002] = W65C02::INS_RTS;     //6 cycles
     auto psCopy = cpu.PS;
     constexpr byte EXPECTED_CYCLES = 14;
     constexpr byte INSTRUCTIONS = 3;
@@ -64,7 +64,7 @@ TEST_F(JumpsAndCallsTests, JSRAndRTSCanJumpToAndReturnFromSubroutine) {
 }
 
 TEST_F(JumpsAndCallsTests, JMPAbsoluteCanJumpToANewAddress) {
-    ram[0xFFFC] = _65C02::INS_JMP_ABS;
+    ram[0xFFFC] = W65C02::INS_JMP_ABS;
     ram[0xFFFD] = 0x00;
     ram[0xFFFE] = 0x80;
     auto psCopy = cpu.PS;
@@ -77,7 +77,7 @@ TEST_F(JumpsAndCallsTests, JMPAbsoluteCanJumpToANewAddress) {
 }
 
 TEST_F(JumpsAndCallsTests, JMPIndirectCanJumpToANewAddress) {
-    ram[0xFFFC] = _65C02::INS_JMP_IND;
+    ram[0xFFFC] = W65C02::INS_JMP_IND;
     ram[0xFFFD] = 0x20;
     ram[0xFFFE] = 0x01;
     ram[0x0120] = 0xFC;
@@ -92,7 +92,7 @@ TEST_F(JumpsAndCallsTests, JMPIndirectCanJumpToANewAddress) {
 }
 
 TEST_F(JumpsAndCallsTests, JMPIndirectCanJumpToANewAddressOnPageBoundery) {
-    ram[0xFFFC] = _65C02::INS_JMP_IND;
+    ram[0xFFFC] = W65C02::INS_JMP_IND;
     ram[0xFFFD] = 0xFF;
     ram[0xFFFE] = 0x01;
     ram[0x01FF] = 0xFC;
@@ -108,7 +108,7 @@ TEST_F(JumpsAndCallsTests, JMPIndirectCanJumpToANewAddressOnPageBoundery) {
 
 TEST_F(JumpsAndCallsTests, JMPAbsoluteIndexedIndirectCanJumpToANewAddress) {
     cpu.X = 0x37;
-    ram[0xFFFC] = _65C02::INS_JMP_ABS_IND;
+    ram[0xFFFC] = W65C02::INS_JMP_ABS_IND;
     ram[0xFFFD] = 0x00;
     ram[0xFFFE] = 0x90;
     ram[0x9037] = 0xFC;
@@ -124,7 +124,7 @@ TEST_F(JumpsAndCallsTests, JMPAbsoluteIndexedIndirectCanJumpToANewAddress) {
 
 TEST_F(JumpsAndCallsTests, JMPAbsoluteIndexedIndirectCanJumpToANewAddressOnPageBoundery) {
     cpu.X = 0xFF;
-    ram[0xFFFC] = _65C02::INS_JMP_ABS_IND;
+    ram[0xFFFC] = W65C02::INS_JMP_ABS_IND;
     ram[0xFFFD] = 0x00;
     ram[0xFFFE] = 0x90;
     ram[0x90FF] = 0xFC;
@@ -140,7 +140,7 @@ TEST_F(JumpsAndCallsTests, JMPAbsoluteIndexedIndirectCanJumpToANewAddressOnPageB
 
 TEST_F(JumpsAndCallsTests, JMPAbsoluteIndexedIndirectCanJumpToANewAddressOnEndOfMemory) {
     cpu.X = 0x00;
-    ram[0xFFFC] = _65C02::INS_JMP_ABS_IND;
+    ram[0xFFFC] = W65C02::INS_JMP_ABS_IND;
     ram[0xFFFD] = 0xFF;
     ram[0xFFFE] = 0x90;
     ram[0x90FF] = 0xFC;

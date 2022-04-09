@@ -9,3 +9,4 @@ set(CMAKE_CXX_EXTENSIONS NO)
 
 add_subdirectory(SystemLib)
 add_subdirectory(SystemTest)
+add_subdirectory(SystemBenchmark)

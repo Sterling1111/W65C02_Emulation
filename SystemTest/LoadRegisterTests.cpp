@@ -3,7 +3,7 @@
 
 class LD_Im_Abs_ZP : public testing::TestWithParam<word> {
     System system{0x0000, 0xFFFF, -1, -1, -1, -1, .1};
-    _65C02& cpu = system.cpu;
+    W65C02& cpu = system.cpu;
     RAM& ram = system.ram;
 
     virtual void SetUp() {
@@ -12,14 +12,14 @@ class LD_Im_Abs_ZP : public testing::TestWithParam<word> {
     }
     virtual void TearDown() {}
 public:
-    void TestLoadRegisterImmediate(byte, byte, byte _65C02::*);
-    void TestLoadRegisterAbsolute(byte, byte, byte _65C02::*);
-    void TestLoadRegisterZeroPage(byte, byte, byte _65C02::*);
+    void TestLoadRegisterImmediate(byte, byte, byte W65C02::*);
+    void TestLoadRegisterAbsolute(byte, byte, byte W65C02::*);
+    void TestLoadRegisterZeroPage(byte, byte, byte W65C02::*);
 };
 
 class LD_IndY_XInd : public testing::TestWithParam<std::tuple<byte, byte, word, byte>> {
     System system{0x0000, 0xFFFF, -1, -1, -1, -1, .1};
-    _65C02& cpu = system.cpu;
+    W65C02& cpu = system.cpu;
     RAM& ram = system.ram;
 
     virtual void SetUp() {
@@ -29,13 +29,13 @@ class LD_IndY_XInd : public testing::TestWithParam<std::tuple<byte, byte, word, 
     virtual void TearDown() {}
 
 public:
-    void TestLoadRegisterIndirectIndexed(byte, byte, byte, word, byte, byte _65C02::*);
-    void TestLoadRegisterIndexedIndirect(byte opcode, byte xVal, byte zpAddr, word zpValue, byte valToLoad, byte _65C02::*Register);
+    void TestLoadRegisterIndirectIndexed(byte, byte, byte, word, byte, byte W65C02::*);
+    void TestLoadRegisterIndexedIndirect(byte opcode, byte xVal, byte zpAddr, word zpValue, byte valToLoad, byte W65C02::*Register);
 };
 
 class LD_ZPX_ZPY : public testing::TestWithParam<std::tuple<byte, byte, byte>> {
     System system{0x0000, 0xFFFF, -1, -1, -1, -1, .1};
-    _65C02& cpu = system.cpu;
+    W65C02& cpu = system.cpu;
     RAM& ram = system.ram;
 
     virtual void SetUp() {
@@ -45,13 +45,13 @@ class LD_ZPX_ZPY : public testing::TestWithParam<std::tuple<byte, byte, byte>> {
     virtual void TearDown() {}
 
 public:
-    void TestLoadRegisterZeroPageX(byte, byte, word, byte, byte _65C02::*);
-    void TestLoadRegisterZeroPageY(byte, byte, word, byte, byte _65C02::*);
+    void TestLoadRegisterZeroPageX(byte, byte, word, byte, byte W65C02::*);
+    void TestLoadRegisterZeroPageY(byte, byte, word, byte, byte W65C02::*);
 };
 
 class LD_ABSX_ABSY : public testing::TestWithParam<std::tuple<byte, byte, byte>> {
     System system{0x0000, 0xFFFF, -1, -1, -1, -1, .1};
-    _65C02& cpu = system.cpu;
+    W65C02& cpu = system.cpu;
     RAM& ram = system.ram;
 
     virtual void SetUp() {
@@ -61,13 +61,13 @@ class LD_ABSX_ABSY : public testing::TestWithParam<std::tuple<byte, byte, byte>>
     virtual void TearDown() {}
 
 public:
-    void TestLoadRegisterAbsoluteX(byte, byte, word, byte, byte _65C02::*);
-    void TestLoadRegisterAbsoluteY(byte, byte, word, byte, byte _65C02::*);
+    void TestLoadRegisterAbsoluteX(byte, byte, word, byte, byte W65C02::*);
+    void TestLoadRegisterAbsoluteY(byte, byte, word, byte, byte W65C02::*);
 };
 
 class LD_ZPInd : public testing::TestWithParam<std::tuple<byte, byte, word>> {
     System system{0x0000, 0xFFFF, -1, -1, -1, -1, .1};
-    _65C02& cpu = system.cpu;
+    W65C02& cpu = system.cpu;
     RAM& ram = system.ram;
 
     virtual void SetUp() {
@@ -77,22 +77,22 @@ class LD_ZPInd : public testing::TestWithParam<std::tuple<byte, byte, word>> {
     virtual void TearDown() {}
 
 public:
-    void TestLoadRegisterZeroPageIndirect(byte, byte, byte, word, byte _65C02::*);
+    void TestLoadRegisterZeroPageIndirect(byte, byte, byte, word, byte W65C02::*);
 };
 
 
-static void VerifyUnmodifiedCPUFlagsFromLoadRegister(const std::bitset<_65C02::StatusFlags::numFlags>& ps, const std::bitset<_65C02::StatusFlags::numFlags>& psCopy) {
-    EXPECT_EQ(ps.test(_65C02::StatusFlags::C), psCopy.test(_65C02::StatusFlags::C));
-    EXPECT_EQ(ps.test(_65C02::StatusFlags::I), psCopy.test(_65C02::StatusFlags::I));
-    EXPECT_EQ(ps.test(_65C02::StatusFlags::D), psCopy.test(_65C02::StatusFlags::D));
-    EXPECT_EQ(ps.test(_65C02::StatusFlags::B), psCopy.test(_65C02::StatusFlags::B));
-    EXPECT_EQ(ps.test(_65C02::StatusFlags::V), psCopy.test(_65C02::StatusFlags::V));
+static void VerifyUnmodifiedCPUFlagsFromLoadRegister(const std::bitset<W65C02::StatusFlags::numFlags>& ps, const std::bitset<W65C02::StatusFlags::numFlags>& psCopy) {
+    EXPECT_EQ(ps.test(W65C02::StatusFlags::C), psCopy.test(W65C02::StatusFlags::C));
+    EXPECT_EQ(ps.test(W65C02::StatusFlags::I), psCopy.test(W65C02::StatusFlags::I));
+    EXPECT_EQ(ps.test(W65C02::StatusFlags::D), psCopy.test(W65C02::StatusFlags::D));
+    EXPECT_EQ(ps.test(W65C02::StatusFlags::B), psCopy.test(W65C02::StatusFlags::B));
+    EXPECT_EQ(ps.test(W65C02::StatusFlags::V), psCopy.test(W65C02::StatusFlags::V));
 }
 
 
-void LD_Im_Abs_ZP::TestLoadRegisterImmediate(byte opcode, byte value, byte _65C02::* Register) {
-    cpu.PS.set(_65C02::StatusFlags::Z, value);
-    cpu.PS.set(_65C02::StatusFlags::N, (!value) & 0x80);
+void LD_Im_Abs_ZP::TestLoadRegisterImmediate(byte opcode, byte value, byte W65C02::* Register) {
+    cpu.PS.set(W65C02::StatusFlags::Z, value);
+    cpu.PS.set(W65C02::StatusFlags::N, (!value) & 0x80);
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = value;
     auto psCopy = cpu.PS;
@@ -104,14 +104,14 @@ void LD_Im_Abs_ZP::TestLoadRegisterImmediate(byte opcode, byte value, byte _65C0
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - PCCopy, EXPECTED_BYTES);
     EXPECT_EQ(cpu.*Register, value);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::Z), !value);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::N), (value & 0x80) >> 7);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::Z), !value);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::N), (value & 0x80) >> 7);
     VerifyUnmodifiedCPUFlagsFromLoadRegister(cpu.PS, psCopy);
 }
 
-void LD_Im_Abs_ZP::TestLoadRegisterAbsolute(byte opcode, byte value, byte _65C02::* Register) {
-    cpu.PS.set(_65C02::StatusFlags::Z, value);
-    cpu.PS.set(_65C02::StatusFlags::N, (!value) & 0x80);
+void LD_Im_Abs_ZP::TestLoadRegisterAbsolute(byte opcode, byte value, byte W65C02::* Register) {
+    cpu.PS.set(W65C02::StatusFlags::Z, value);
+    cpu.PS.set(W65C02::StatusFlags::N, (!value) & 0x80);
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = 0x00;
     ram[0xFFFE] = 0x90;
@@ -125,14 +125,14 @@ void LD_Im_Abs_ZP::TestLoadRegisterAbsolute(byte opcode, byte value, byte _65C02
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - PCCopy, EXPECTED_BYTES);
     EXPECT_EQ(cpu.*Register, value);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::Z), !value);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::N), (value & 0x80) >> 7);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::Z), !value);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::N), (value & 0x80) >> 7);
     VerifyUnmodifiedCPUFlagsFromLoadRegister(cpu.PS, psCopy);
 }
 
-void LD_Im_Abs_ZP::TestLoadRegisterZeroPage(byte opcode, byte value, byte _65C02::* Register) {
-    cpu.PS.set(_65C02::StatusFlags::Z, value);
-    cpu.PS.set(_65C02::StatusFlags::N, (!value) & 0x80);
+void LD_Im_Abs_ZP::TestLoadRegisterZeroPage(byte opcode, byte value, byte W65C02::* Register) {
+    cpu.PS.set(W65C02::StatusFlags::Z, value);
+    cpu.PS.set(W65C02::StatusFlags::N, (!value) & 0x80);
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = 0x42;
     ram[0x0042] = value;
@@ -145,18 +145,18 @@ void LD_Im_Abs_ZP::TestLoadRegisterZeroPage(byte opcode, byte value, byte _65C02
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - PCCopy, EXPECTED_BYTES);
     EXPECT_EQ(cpu.*Register, value);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::Z), !value);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::N), (value & 0x80) >> 7);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::Z), !value);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::N), (value & 0x80) >> 7);
     VerifyUnmodifiedCPUFlagsFromLoadRegister(cpu.PS, psCopy);
 }
 
-void LD_IndY_XInd::TestLoadRegisterIndirectIndexed(byte opcode, byte yVAl, byte zpAddr, word zpVal, byte valToLoad, byte _65C02::* Register) {
+void LD_IndY_XInd::TestLoadRegisterIndirectIndexed(byte opcode, byte yVAl, byte zpAddr, word zpVal, byte valToLoad, byte W65C02::* Register) {
     word valAddress = zpVal + yVAl;
     if(valAddress == 0xFFFC or valAddress == 0xFFFD or valAddress == zpAddr or valAddress == (byte)(zpAddr + 1)) {
         GTEST_SKIP();
     }
-    cpu.PS.set(_65C02::StatusFlags::Z, valToLoad);
-    cpu.PS.set(_65C02::StatusFlags::N, (!valToLoad) & 0x80);
+    cpu.PS.set(W65C02::StatusFlags::Z, valToLoad);
+    cpu.PS.set(W65C02::StatusFlags::N, (!valToLoad) & 0x80);
     cpu.Y = yVAl;
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = zpAddr;
@@ -172,17 +172,17 @@ void LD_IndY_XInd::TestLoadRegisterIndirectIndexed(byte opcode, byte yVAl, byte 
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - PCCopy, EXPECTED_BYTES);
     EXPECT_EQ(cpu.*Register, valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::Z), !valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::Z), !valToLoad);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
     VerifyUnmodifiedCPUFlagsFromLoadRegister(cpu.PS, psCopy);
 }
 
-void LD_IndY_XInd::TestLoadRegisterIndexedIndirect(byte opcode, byte xVal, byte zpAddr, word zpVal, byte valToLoad, byte _65C02::* Register) {
+void LD_IndY_XInd::TestLoadRegisterIndexedIndirect(byte opcode, byte xVal, byte zpAddr, word zpVal, byte valToLoad, byte W65C02::* Register) {
     if(zpVal == 0xFFFC or zpVal == 0xFFFD or zpVal == (byte)(zpAddr + xVal) or zpVal == (byte)(zpAddr + xVal + 1)) {
         GTEST_SKIP();
     }
-    cpu.PS.set(_65C02::StatusFlags::Z, valToLoad);
-    cpu.PS.set(_65C02::StatusFlags::N, (!valToLoad) & 0x80);
+    cpu.PS.set(W65C02::StatusFlags::Z, valToLoad);
+    cpu.PS.set(W65C02::StatusFlags::N, (!valToLoad) & 0x80);
     cpu.X = xVal;
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = zpAddr;
@@ -198,14 +198,14 @@ void LD_IndY_XInd::TestLoadRegisterIndexedIndirect(byte opcode, byte xVal, byte 
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - PCCopy, EXPECTED_BYTES);
     EXPECT_EQ(cpu.*Register, valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::Z), !valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::Z), !valToLoad);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
     VerifyUnmodifiedCPUFlagsFromLoadRegister(cpu.PS, psCopy);
 }
 
-void LD_ZPX_ZPY::TestLoadRegisterZeroPageX(byte opcode, byte xVal, word zpAddr, byte valToLoad, byte _65C02::* Register) {
-    cpu.PS.set(_65C02::StatusFlags::Z, valToLoad);
-    cpu.PS.set(_65C02::StatusFlags::N, (!valToLoad) & 0x80);
+void LD_ZPX_ZPY::TestLoadRegisterZeroPageX(byte opcode, byte xVal, word zpAddr, byte valToLoad, byte W65C02::* Register) {
+    cpu.PS.set(W65C02::StatusFlags::Z, valToLoad);
+    cpu.PS.set(W65C02::StatusFlags::N, (!valToLoad) & 0x80);
     cpu.X = xVal;
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = zpAddr;
@@ -219,14 +219,14 @@ void LD_ZPX_ZPY::TestLoadRegisterZeroPageX(byte opcode, byte xVal, word zpAddr, 
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - PCCopy, EXPECTED_BYTES);
     EXPECT_EQ(cpu.*Register, valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::Z), !valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::Z), !valToLoad);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
     VerifyUnmodifiedCPUFlagsFromLoadRegister(cpu.PS, psCopy);
 }
 
-void LD_ZPX_ZPY::TestLoadRegisterZeroPageY(byte opcode, byte yVal, word zpAddr, byte valToLoad, byte _65C02::* Register) {
-    cpu.PS.set(_65C02::StatusFlags::Z, valToLoad);
-    cpu.PS.set(_65C02::StatusFlags::N, (!valToLoad) & 0x80);
+void LD_ZPX_ZPY::TestLoadRegisterZeroPageY(byte opcode, byte yVal, word zpAddr, byte valToLoad, byte W65C02::* Register) {
+    cpu.PS.set(W65C02::StatusFlags::Z, valToLoad);
+    cpu.PS.set(W65C02::StatusFlags::N, (!valToLoad) & 0x80);
     cpu.Y = yVal;
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = zpAddr;
@@ -240,14 +240,14 @@ void LD_ZPX_ZPY::TestLoadRegisterZeroPageY(byte opcode, byte yVal, word zpAddr, 
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - PCCopy, EXPECTED_BYTES);
     EXPECT_EQ(cpu.*Register, valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::Z), !valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::Z), !valToLoad);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
     VerifyUnmodifiedCPUFlagsFromLoadRegister(cpu.PS, psCopy);
 }
 
-void LD_ABSX_ABSY::TestLoadRegisterAbsoluteX(byte opcode, byte xVal, word addr, byte valToLoad, byte _65C02::* Register) {
-    cpu.PS.set(_65C02::StatusFlags::Z, valToLoad);
-    cpu.PS.set(_65C02::StatusFlags::N, (!valToLoad) & 0x80);
+void LD_ABSX_ABSY::TestLoadRegisterAbsoluteX(byte opcode, byte xVal, word addr, byte valToLoad, byte W65C02::* Register) {
+    cpu.PS.set(W65C02::StatusFlags::Z, valToLoad);
+    cpu.PS.set(W65C02::StatusFlags::N, (!valToLoad) & 0x80);
     cpu.X = xVal;
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = addr & 0xFF;
@@ -262,14 +262,14 @@ void LD_ABSX_ABSY::TestLoadRegisterAbsoluteX(byte opcode, byte xVal, word addr, 
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - PCCopy, EXPECTED_BYTES);
     EXPECT_EQ(cpu.*Register, valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::Z), !valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::Z), !valToLoad);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
     VerifyUnmodifiedCPUFlagsFromLoadRegister(cpu.PS, psCopy);
 }
 
-void LD_ABSX_ABSY::TestLoadRegisterAbsoluteY(byte opcode, byte yVal, word addr, byte valToLoad, byte _65C02::* Register) {
-    cpu.PS.set(_65C02::StatusFlags::Z, valToLoad);
-    cpu.PS.set(_65C02::StatusFlags::N, (!valToLoad) & 0x80);
+void LD_ABSX_ABSY::TestLoadRegisterAbsoluteY(byte opcode, byte yVal, word addr, byte valToLoad, byte W65C02::* Register) {
+    cpu.PS.set(W65C02::StatusFlags::Z, valToLoad);
+    cpu.PS.set(W65C02::StatusFlags::N, (!valToLoad) & 0x80);
     cpu.Y = yVal;
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = addr & 0xFF;
@@ -284,14 +284,14 @@ void LD_ABSX_ABSY::TestLoadRegisterAbsoluteY(byte opcode, byte yVal, word addr, 
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - PCCopy, EXPECTED_BYTES);
     EXPECT_EQ(cpu.*Register, valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::Z), !valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::Z), !valToLoad);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
     VerifyUnmodifiedCPUFlagsFromLoadRegister(cpu.PS, psCopy);
 }
 
-void LD_ZPInd::TestLoadRegisterZeroPageIndirect(byte opcode, byte zpAddr, byte valToLoad, word zpVal, byte _65C02::* Register) {
-    cpu.PS.set(_65C02::StatusFlags::Z, valToLoad);
-    cpu.PS.set(_65C02::StatusFlags::N, (!valToLoad) & 0x80);
+void LD_ZPInd::TestLoadRegisterZeroPageIndirect(byte opcode, byte zpAddr, byte valToLoad, word zpVal, byte W65C02::* Register) {
+    cpu.PS.set(W65C02::StatusFlags::Z, valToLoad);
+    cpu.PS.set(W65C02::StatusFlags::N, (!valToLoad) & 0x80);
     ram[0xFFFC] = opcode;
     ram[0xFFFD] = zpAddr;
     ram[zpAddr] = zpVal & 0xFF;
@@ -307,85 +307,85 @@ void LD_ZPInd::TestLoadRegisterZeroPageIndirect(byte opcode, byte zpAddr, byte v
     EXPECT_EQ(cpu.cycles.getCycles(), EXPECTED_CYCLES);
     EXPECT_EQ(cpu.PC - PCCopy, EXPECTED_BYTES);
     EXPECT_EQ(cpu.*Register, valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::Z), !valToLoad);
-    EXPECT_EQ(cpu.PS.test(_65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::Z), !valToLoad);
+    EXPECT_EQ(cpu.PS.test(W65C02::StatusFlags::N), (valToLoad & 0x80) >> 7);
     VerifyUnmodifiedCPUFlagsFromLoadRegister(cpu.PS, psCopy);
 }
 
 TEST_P(LD_Im_Abs_ZP, LDAImmediate) {
-    TestLoadRegisterImmediate(_65C02::INS_LDA_IM, GetParam(), &_65C02::A);
+    TestLoadRegisterImmediate(W65C02::INS_LDA_IM, GetParam(), &W65C02::A);
 }
 
 TEST_P(LD_Im_Abs_ZP, LDXImmediate) {
-    TestLoadRegisterImmediate(_65C02::INS_LDX_IM, GetParam(), &_65C02::X);
+    TestLoadRegisterImmediate(W65C02::INS_LDX_IM, GetParam(), &W65C02::X);
 }
 
 TEST_P(LD_Im_Abs_ZP, LDYImmediate) {
-    TestLoadRegisterImmediate(_65C02::INS_LDY_IM, GetParam(), &_65C02::Y);
+    TestLoadRegisterImmediate(W65C02::INS_LDY_IM, GetParam(), &W65C02::Y);
 }
 
 TEST_P(LD_Im_Abs_ZP, LDAAbsolute) {
-    TestLoadRegisterAbsolute(_65C02::INS_LDA_ABS, GetParam(), &_65C02::A);
+    TestLoadRegisterAbsolute(W65C02::INS_LDA_ABS, GetParam(), &W65C02::A);
 }
 
 TEST_P(LD_Im_Abs_ZP, LDXAbsolute) {
-    TestLoadRegisterAbsolute(_65C02::INS_LDX_ABS, GetParam(), &_65C02::X);
+    TestLoadRegisterAbsolute(W65C02::INS_LDX_ABS, GetParam(), &W65C02::X);
 }
 
 TEST_P(LD_Im_Abs_ZP, LDYAbsolute) {
-    TestLoadRegisterAbsolute(_65C02::INS_LDY_ABS, GetParam(), &_65C02::Y);
+    TestLoadRegisterAbsolute(W65C02::INS_LDY_ABS, GetParam(), &W65C02::Y);
 }
 
 TEST_P(LD_Im_Abs_ZP, LDAZeroPage) {
-    TestLoadRegisterZeroPage(_65C02::INS_LDA_ZP, GetParam(), &_65C02::A);
+    TestLoadRegisterZeroPage(W65C02::INS_LDA_ZP, GetParam(), &W65C02::A);
 }
 
 TEST_P(LD_Im_Abs_ZP, LDXZeroPage) {
-    TestLoadRegisterZeroPage(_65C02::INS_LDX_ZP, GetParam(), &_65C02::X);
+    TestLoadRegisterZeroPage(W65C02::INS_LDX_ZP, GetParam(), &W65C02::X);
 }
 
 TEST_P(LD_Im_Abs_ZP, LDYZeroPage) {
-    TestLoadRegisterZeroPage(_65C02::INS_LDY_ZP, GetParam(), &_65C02::Y);
+    TestLoadRegisterZeroPage(W65C02::INS_LDY_ZP, GetParam(), &W65C02::Y);
 }
 
 TEST_P(LD_IndY_XInd, LDAIndirectY) {
-    TestLoadRegisterIndirectIndexed(_65C02::INS_LDA_INDY, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), std::get<3>(GetParam()), &_65C02::A);
+    TestLoadRegisterIndirectIndexed(W65C02::INS_LDA_INDY, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), std::get<3>(GetParam()), &W65C02::A);
 }
 
 TEST_P(LD_IndY_XInd, LDAXIndirect) {
-    TestLoadRegisterIndexedIndirect(_65C02::INS_LDA_XIND, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), std::get<3>(GetParam()), &_65C02::A);
+    TestLoadRegisterIndexedIndirect(W65C02::INS_LDA_XIND, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), std::get<3>(GetParam()), &W65C02::A);
 }
 
 TEST_P(LD_ZPX_ZPY, LDAZeroPageX) {
-    TestLoadRegisterZeroPageX(_65C02::INS_LDA_ZPX, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &_65C02::A);
+    TestLoadRegisterZeroPageX(W65C02::INS_LDA_ZPX, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &W65C02::A);
 }
 
 TEST_P(LD_ZPX_ZPY, LDYZeroPageX) {
-    TestLoadRegisterZeroPageX(_65C02::INS_LDY_ZPX, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &_65C02::Y);
+    TestLoadRegisterZeroPageX(W65C02::INS_LDY_ZPX, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &W65C02::Y);
 }
 
 TEST_P(LD_ZPX_ZPY, LDXZeroPageY) {
-    TestLoadRegisterZeroPageY(_65C02::INS_LDX_ZPY, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &_65C02::X);
+    TestLoadRegisterZeroPageY(W65C02::INS_LDX_ZPY, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &W65C02::X);
 }
 
 TEST_P(LD_ABSX_ABSY, LDAAbsoluteX) {
-    TestLoadRegisterAbsoluteX(_65C02::INS_LDA_ABSX, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &_65C02::A);
+    TestLoadRegisterAbsoluteX(W65C02::INS_LDA_ABSX, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &W65C02::A);
 }
 
 TEST_P(LD_ABSX_ABSY, LDYAbsoluteX) {
-    TestLoadRegisterAbsoluteX(_65C02::INS_LDY_ABSX, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &_65C02::Y);
+    TestLoadRegisterAbsoluteX(W65C02::INS_LDY_ABSX, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &W65C02::Y);
 }
 
 TEST_P(LD_ABSX_ABSY, LDAAbsoluteY) {
-    TestLoadRegisterAbsoluteY(_65C02::INS_LDA_ABSY, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &_65C02::A);
+    TestLoadRegisterAbsoluteY(W65C02::INS_LDA_ABSY, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &W65C02::A);
 }
 
 TEST_P(LD_ABSX_ABSY, LDXAbsoluteY) {
-    TestLoadRegisterAbsoluteY(_65C02::INS_LDX_ABSY, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &_65C02::X);
+    TestLoadRegisterAbsoluteY(W65C02::INS_LDX_ABSY, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &W65C02::X);
 }
 
 TEST_P(LD_ZPInd, LDAZPIndirect) {
-    TestLoadRegisterZeroPageIndirect(_65C02::INS_LDA_ZPIND, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &_65C02::A);
+    TestLoadRegisterZeroPageIndirect(W65C02::INS_LDA_ZPIND, std::get<0>(GetParam()), std::get<1>(GetParam()), std::get<2>(GetParam()), &W65C02::A);
 }
 
 INSTANTIATE_TEST_SUITE_P(LoadValueParam, LD_Im_Abs_ZP,

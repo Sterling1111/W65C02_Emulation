@@ -22,7 +22,7 @@ public:
     }
 
     sdword ramMin{0x0000}, ramMax{0x3FFF}, regMin{0x6000}, regMax{0x7FFF}, romMin{0x8000}, romMax{0xFFFF};
-    _65C02 cpu;
+    W65C02 cpu;
     RAM ram{};
     W65C22S registers{};
     EEPROM eeprom{};

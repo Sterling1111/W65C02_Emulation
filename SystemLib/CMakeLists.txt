@@ -10,7 +10,7 @@ set(SYSTEM_LIB_SOURCES
         "LCD.cpp"
         "RAM.h"
         "system_types.h"
-        "_65C02.cpp"
+        "W65C02.cpp"
         "W65C22S.cpp"
         "main.cpp")
 
