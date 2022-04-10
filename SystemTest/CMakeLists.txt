@@ -20,6 +20,7 @@ set  (TEST_SOURCES
         "JumpsAndCallsTests.cpp"
         "StackOperationsTests.cpp"
         "LogicalOperationsTests.cpp"
+        "RegisterTransferTests.cpp"
         "main.cpp")
 
 add_executable( SystemTest ${TEST_SOURCES} 	)

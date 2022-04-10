@@ -179,7 +179,8 @@ public:
     //Register Transfers
     INS_TXA_IMP = 0x8A,
     INS_TAX_IMP = 0xAA,
-    INS_TAY_IMP = 0xA8;
+    INS_TAY_IMP = 0xA8,
+    INS_TYA_IMP = 0x98;
 };
 
 
