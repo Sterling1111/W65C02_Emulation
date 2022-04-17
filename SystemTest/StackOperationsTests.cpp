@@ -225,15 +225,3 @@ TEST_F(StackOperationsTests, PLYCanPullYRegisterFromStack) {
     EXPECT_FALSE(cpu.PS.test(W65C02::StatusFlags::N));
     VerifyUnmodifiedCPUFlagsFromLoadRegister(cpu.PS, psCopy);
 }
-
-TEST(ProgramLoggingOutput, StackOperationsLogging) {
-    System system{0x0000, 0x3FFF, 0x6000, 0x7FFF, 0x8000, 0xFFFF, .001};
-    system.executeProgram("EmulationOutFiles//emulation_stack_operations.out", 43, true,
-                          "EmulationLogFiles//emulation_stack_operations.txt");
-    std::ifstream emulation_logging("EmulationLogFiles//emulation_stack_operations.txt"),
-    _65C02_logging("65C02LogFiles//65C02_stack_operations.txt");
-    std::stringstream emulation_buffer, _65C02_buffer;
-    emulation_buffer << emulation_logging.rdbuf();
-    _65C02_buffer << _65C02_logging.rdbuf();
-    EXPECT_STREQ(_65C02_buffer.str().c_str(), emulation_buffer.str().c_str());
-}

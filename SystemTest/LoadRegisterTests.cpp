@@ -425,16 +425,5 @@ INSTANTIATE_TEST_SUITE_P(RegVal_Addr_LoadVal_Params, LD_ABSX_ABSY,
                                  std::make_tuple(0xFF, 0x4480, 0x00)
                                  ));
 
-TEST(ProgramLoggingOutput, LoadRegisterLogging) {
-    System system{0x0000, 0x3FFF, 0x6000, 0x7FFF, 0x8000, 0xFFFF, .001};
-    system.executeProgram("EmulationOutFiles//emulation_load_register.out", 155, true,
-                          "EmulationLogFiles//emulation_load_register.txt");
-    std::ifstream emulation_logging("EmulationLogFiles//emulation_load_register.txt"),
-    _65C02_logging("65C02LogFiles//65C02_load_register.txt");
-    std::stringstream emulation_buffer, _65C02_buffer;
-    emulation_buffer << emulation_logging.rdbuf();
-    _65C02_buffer << _65C02_logging.rdbuf();
-    EXPECT_STREQ(_65C02_buffer.str().c_str(), emulation_buffer.str().c_str());
-}
 
 

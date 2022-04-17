@@ -314,15 +314,3 @@ TEST_F(StoreRegisterTests, STAIndirectYCanStoreARegisterIntoMemoryWhenPageBounde
     EXPECT_EQ(cpu.A, ram[0x8101]);
     EXPECT_EQ(cpu.PS, psCopy);
 }
-
-TEST(ProgramLoggingOutput, StoreRegisterLogging) {
-    System system{0x0000, 0x3FFF, 0x6000, 0x7FFF, 0x8000, 0xFFFF, 1};
-    system.executeProgram("EmulationOutFiles//emulation_store_register.out", 119, true,
-                          "EmulationLogFiles//emulation_store_register.txt");
-    std::ifstream emulation_logging("EmulationLogFiles//emulation_store_register.txt"),
-                    _65C02_logging("65C02LogFiles//65C02_store_register.txt");
-    std::stringstream emulation_buffer, _65C02_buffer;
-    emulation_buffer << emulation_logging.rdbuf();
-    _65C02_buffer << _65C02_logging.rdbuf();
-    EXPECT_STREQ(_65C02_buffer.str().c_str(), emulation_buffer.str().c_str());
-}

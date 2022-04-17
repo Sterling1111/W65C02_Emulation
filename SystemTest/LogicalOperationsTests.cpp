@@ -517,15 +517,3 @@ INSTANTIATE_TEST_SUITE_P(ZPAddr_ZPVal_aVal_memVal_Params, Logical_ZPInd,
                                  std::make_tuple(0x00, 0x9000, 0xff, 0xff),
                                  std::make_tuple(0xFF, 0x9000, 0x0f, 0xf0)
                                  ));
-
-TEST(ProgramLoggingOutput, LogicalOperationsLogging) {
-    System system{0x0000, 0x3FFF, 0x6000, 0x7FFF, 0x8000, 0xFFFF, .001};
-    system.executeProgram("EmulationOutFiles//emulation_logical_operations.out", 643, true,
-                          "EmulationLogFiles//emulation_logical_operations.txt");
-    std::ifstream emulation_logging("EmulationLogFiles//emulation_logical_operations.txt"),
-    _65C02_logging("65C02LogFiles//65C02_logical_operations.txt");
-    std::stringstream emulation_buffer, _65C02_buffer;
-    emulation_buffer << emulation_logging.rdbuf();
-    _65C02_buffer << _65C02_logging.rdbuf();
-    EXPECT_STREQ(_65C02_buffer.str().c_str(), emulation_buffer.str().c_str());
-}

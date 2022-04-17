@@ -11,6 +11,7 @@
 #define CARRY_BIT_POS 8
 #define OVERFLOW_BIT_POS 6
 #define OVERFLOW_BIT_MASK 0x40
+#define SIGN_BIT_MASK 0x80
 #define MAX_BYTE 0XFF
 
 class Bus;
@@ -146,6 +147,7 @@ public:
     };
 
     std::vector<Opcode> opCodeMatrix;
+    Opcode opcode{};
 
     //instruction opcodes
     static constexpr byte
@@ -180,7 +182,12 @@ public:
     INS_TXA_IMP = 0x8A,
     INS_TAX_IMP = 0xAA,
     INS_TAY_IMP = 0xA8,
-    INS_TYA_IMP = 0x98;
+    INS_TYA_IMP = 0x98,
+    //shift instructions
+    INS_ASL_ABSX = 0x1E,
+    INS_ROL_ABSX = 0x3E,
+    INS_LSR_ABSX = 0x5E,
+    INS_ROR_ABSX = 0x7E;
 };
 
 

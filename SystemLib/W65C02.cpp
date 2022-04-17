@@ -72,22 +72,11 @@ byte W65C02::fetchByte() {
     return readByte(PC++);
 }
 
-/*    6502 is little Endian which means that the first byte read
-    * will be the least significant byte. That is if you want to
-    * store 0x1234 in memory then it will be stored as 34 12. What
-    * the code below for our example will first read 34 from memory
-    * as a word so it will be 0034. Then it reads the next byte from
-    * memory which is 12 shifts it to the left by 8 bits = 1200 and
-    * then does 0034 | 1200 = 1234 which is what we wanted.*/
 word W65C02::fetchWord() {
     word data = fetchByte();
     return data | (fetchByte() << 8);
 }
 
-/*
-     * 0x1234 will be stored as 34 12 so write LSB bytes at low address
-     * and MSB bytes at high address.
-     */
 void W65C02::writeWord(word data, word address) {
     writeByte(data & 0xFF, address);
     writeByte(data >> 8, address + 1);
@@ -126,7 +115,6 @@ byte W65C02::readByteFromStack() {
     return readByte(SPToAddress());
 }
 
-//return the SP as a full 16 bit address in the first page even though SP is a byte
 word W65C02::SPToAddress() const {
     return 0x100 | SP;
 }
@@ -202,7 +190,7 @@ word W65C02::zeroPageA(byte W65C02::* Register, const std::function<byte(byte)>&
 word W65C02::zeroPageB(byte W65C02::* Register, const std::function<byte(byte)>& op) {
     byte zeroPage{fetchByte()};
     byte data{readByte(zeroPage)};
-    readByte(zeroPage + 1);
+    readByte(zeroPage);
     writeByte(op(data), zeroPage);
     return 0;
 }
@@ -271,14 +259,13 @@ word W65C02::zeroPageXA(byte W65C02::* Register, const std::function<byte(byte)>
     } return readByte(effectiveAddress);
 }
 
-//TODO - test this functions correctness it is guaranteed to be wrong I just dont
-// yet know what right is
-word W65C02::zeroPageXB(byte W65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::zeroPageXB(byte W65C02::*, const std::function<byte(byte)>& op) {
     byte zeroPage{readByte(PC)};
+    byte effectiveAddress = zeroPage + X;
     fetchByte();
-    byte data{readByte(zeroPage + X)};
-    readByte(readByte(zeroPage + X + 1));
-    writeByte(op(data), zeroPage + X);
+    byte data{readByte(effectiveAddress)};
+    readByte(effectiveAddress);
+    writeByte(op(data), effectiveAddress);
     return 0;
 }
 
@@ -312,16 +299,17 @@ word W65C02::absoluteXA(byte W65C02::* Register, const std::function<byte(byte)>
     return 0;
 }
 
-//TODO - test this functions correctness it is gaurenteed to be worng I just dont
-// yet know what right it
-word W65C02::absoluteXB(byte W65C02::* Register, const std::function<byte(byte)>& op) {
-    byte AAL{fetchByte()};
-    byte AAH{fetchByte()};
-    word address = (AAH << 4) | AAL;
-    readByte((AAH  << 4) | (byte)(AAL + X));
-    byte data{readByte(address + X)};
-    readByte(address + X + 1);
-    writeByte(op(data), address + X);
+word W65C02::absoluteXB(byte W65C02::*, const std::function<byte(byte)>& op) {
+    auto ins = opcode.instruction;
+    word address{fetchWord()};
+    word effectiveAddress = address + X;
+    if(((address & 0xFF) + X) > 0xFF)
+        readByte(PC - 1);
+    else if(ins != &W65C02::ASL && ins != &W65C02::LSR && ins != &W65C02::ROL && ins != &W65C02::ROR)
+        readByte(effectiveAddress);
+    readByte(effectiveAddress);
+    byte data{readByte(effectiveAddress)};
+    writeByte(op(data), effectiveAddress);
     return 0;
 }
 
@@ -344,7 +332,7 @@ word W65C02::absoluteY(byte W65C02::* Register, const std::function<byte(byte)>&
     return 0;
 }
 
-word W65C02::relativeA(byte W65C02::* Register, const std::function<byte(byte)>& op) {
+word W65C02::relativeA(byte W65C02::*, const std::function<byte(byte)>& op) {
     byte value{fetchByte()};
     if(op(0)) {     //Then we should branch. the value passed to op is garbage. It isn't needed.
         readByte(PC);
@@ -432,7 +420,6 @@ word W65C02::zeroPageIndirect(byte W65C02::* Register, const std::function<byte(
 }
 
 void W65C02::execute(uint64_t numInstructionsToExecute) {
-    Opcode opcode{};
     while(numInstructionsToExecute--) {
         opcode = opCodeMatrix[fetchByte()];
         (this->*(opcode.instruction))(opcode.addrMode);
@@ -442,7 +429,7 @@ void W65C02::execute(uint64_t numInstructionsToExecute) {
 void W65C02::ADC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     byte value = (this->*addrMode)(nullptr, nullptr);
     word result = (word)A + (word)value + (word)PS.test(StatusFlags::C);
-    bool SB1 = A >> SIGN_BIT_POS, SB2 = value >> SIGN_BIT_POS, SBR = result >> SIGN_BIT_POS;
+    bool SB1 = A >> SIGN_BIT_POS, SB2 = value >> SIGN_BIT_POS, SBR = (result & SIGN_BIT_MASK) >> SIGN_BIT_POS;
     PS.set(StatusFlags::V, !(SB1 ^ SB2) && (SB2 ^ SBR));
     PS.set(StatusFlags::C, result >> CARRY_BIT_POS);
     loadRegister(A, (byte)(result & MAX_BYTE));
@@ -606,7 +593,7 @@ void W65C02::BPL(word (W65C02::* addrMode)(byte W65C02::*, const std::function<b
 }
 
 void W65C02::BRA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
-    PC = (this->*addrMode)(nullptr, [this](byte) {
+    PC = (this->*addrMode)(nullptr, [](byte) {
         return 1;    //branch always
     });
 }
@@ -651,21 +638,21 @@ void W65C02::CMP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<b
     byte value = (this->*addrMode)(nullptr, nullptr);
     PS.set(StatusFlags::C, A >= value);
     PS.set(StatusFlags::Z, A == value);
-    PS.set(StatusFlags::N, A < value);
+    PS.set(StatusFlags::N, ((byte)(A - value)) >> 7);
 }
 
 void W65C02::CPX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     byte value = (this->*addrMode)(nullptr, nullptr);
     PS.set(StatusFlags::C, X >= value);
     PS.set(StatusFlags::Z, X == value);
-    PS.set(StatusFlags::N, X < value);
+    PS.set(StatusFlags::N, ((byte)(X - value)) >> 7);
 }
 
 void W65C02::CPY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     byte value = (this->*addrMode)(nullptr, nullptr);
     PS.set(StatusFlags::C, Y >= value);
     PS.set(StatusFlags::Z, Y == value);
-    PS.set(StatusFlags::N, Y < value);
+    PS.set(StatusFlags::N, ((byte)(Y - value)) >> 7);
 }
 
 void W65C02::DEC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
@@ -853,7 +840,7 @@ void W65C02::RTS(word (W65C02::* addrMode)(byte W65C02::*, const std::function<b
 void W65C02::SBC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
     byte value = (this->*addrMode)(nullptr, nullptr);
     word result = (word)A + (word)~value + (word)(PS.test(StatusFlags::C));
-    bool SB1 = A >> SIGN_BIT_POS, SB2 = value >> SIGN_BIT_POS, SBR = (result & 0xFF) >> SIGN_BIT_POS;
+    bool SB1 = A >> SIGN_BIT_POS, SB2 = value >> SIGN_BIT_POS, SBR = (result & SIGN_BIT_MASK) >> SIGN_BIT_POS;
     PS.set(StatusFlags::V, (SB1 ^ SB2) && !(SB2 ^ SBR));
     PS.set(StatusFlags::C, !(result >> CARRY_BIT_POS));
     loadRegister(A, (byte)(result & MAX_BYTE));

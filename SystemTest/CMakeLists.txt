@@ -15,12 +15,14 @@ FetchContent_MakeAvailable(googletest)
 
 # source for the test executable
 set  (TEST_SOURCES
+        "LoggingTests.cpp"
         "LoadRegisterTests.cpp"
         "StoreRegisterTests.cpp"
         "JumpsAndCallsTests.cpp"
         "StackOperationsTests.cpp"
         "LogicalOperationsTests.cpp"
         "RegisterTransferTests.cpp"
+        "ArithmeticOperationsTests.cpp"
         "main.cpp")
 
 add_executable( SystemTest ${TEST_SOURCES} 	)
