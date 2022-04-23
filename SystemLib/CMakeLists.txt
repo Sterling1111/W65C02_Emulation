@@ -3,16 +3,15 @@ cmake_minimum_required(VERSION 3.16)
 project( SystemLib )
 
 set(SYSTEM_LIB_SOURCES
-        "EEPROM.h"
-        "Bus.h"
-        "Cycles.h"
-        "System.h"
+        "System.cpp"
         "LCD.cpp"
-        "RAM.h"
-        "system_types.h"
         "W65C02.cpp"
-        "W65C22S.cpp"
-        "main.cpp")
+        "W65C22.cpp"
+        "EEPROM.cpp"
+        "RAM.cpp"
+        "Bus.cpp"
+        "main.cpp"
+        "Cycles.cpp")
 
 add_library( SystemLib ${SYSTEM_LIB_SOURCES})
 

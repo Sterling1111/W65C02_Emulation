@@ -1,11 +1,11 @@
 #ifndef INC_65C02_EMULATION__65C02_H
 #define INC_65C02_EMULATION__65C02_H
 
-#include "system_types.h"
-#include "Cycles.h"
 #include <bitset>
-#include <vector>
 #include <functional>
+#include "Cycles.h"
+#include "Bus.h"
+#include <vector>
 
 #define SIGN_BIT_POS 7
 #define CARRY_BIT_POS 8
@@ -14,15 +14,15 @@
 #define SIGN_BIT_MASK 0x80
 #define MAX_BYTE 0XFF
 
-class Bus;
 
 class W65C02 {
 public:
-    word PC;    //program counter
-    byte SP;    //stack pointer
-    byte A, X, Y;   //registers
+    word PC{};    //program counter
+    byte SP{};    //stack pointer
+    byte A{}, X{}, Y{};   //registers
     //this will be set equal to PS when PS needs to be pushed onto stack
-    byte PS_byte;
+    byte PS_byte{};
+    Bus* bus;
 private:
     byte ZERO = 0x00; //This is meant to make the STZ instruction work
 
@@ -33,9 +33,7 @@ public:
     enum StatusFlags {N = 7, V = 6, U = 5, B = 4, D = 3, I = 2, Z = 1, C = 0, numFlags = 8};
     std::bitset<StatusFlags::numFlags> PS;
 
-    Bus* bus = nullptr;
-
-    Cycles cycles;
+    Cycles cycles{};
     static dword cycleDuration;
     struct CyclesIncrementer {
         Cycles& cycles;
@@ -44,9 +42,8 @@ public:
     };
 
     explicit W65C02(double Mhz = 1);
-    ~W65C02()= default;
-
-    void connectBus(Bus* b);
+    void connectBus(Bus* bus);
+    void initializeOpcodeMatrix();
     void setCycleDuration(double Mhz);
     void reset(word pc=0xFFFE);
     word readWord(word address);
@@ -153,43 +150,41 @@ public:
     static constexpr byte
     //Load/Store Operations
     INS_LDA_IM = 0xA9,  INS_LDA_ZP = 0xA5, INS_LDA_ZPX = 0xB5, INS_LDA_ABS = 0xAD, INS_LDA_ABSX = 0xBD, INS_LDA_ABSY = 0xB9, INS_LDA_XIND = 0xA1, INS_LDA_INDY = 0xB1, INS_LDA_ZPIND = 0xB2,
-    INS_LDX_IM = 0xA2,  INS_LDX_ZP = 0xA6, INS_LDX_ZPY = 0xB6, INS_LDX_ABS = 0xAE, INS_LDX_ABSY = 0xBE,
-    INS_LDY_IM = 0xA0,  INS_LDY_ZP = 0xA4, INS_LDY_ZPX = 0xB4, INS_LDY_ABS = 0xAC, INS_LDY_ABSX = 0xBC,
-    INS_STA_ZP = 0x85, INS_STA_ZPX = 0x95, INS_STA_ABS = 0x8D, INS_STA_ABSX = 0x9D, INS_STA_ABSY = 0x99, INS_STA_XIND = 0x81, INS_STA_INDY = 0x91,
-    INS_STX_ZP = 0x86, INS_STX_ZPY = 0x96, INS_STX_ABS = 0x8E,
-    INS_STY_ZP = 0x84, INS_STY_ZPX = 0x94, INS_STY_ABS = 0x8C,
+            INS_LDX_IM = 0xA2,  INS_LDX_ZP = 0xA6, INS_LDX_ZPY = 0xB6, INS_LDX_ABS = 0xAE, INS_LDX_ABSY = 0xBE,
+            INS_LDY_IM = 0xA0,  INS_LDY_ZP = 0xA4, INS_LDY_ZPX = 0xB4, INS_LDY_ABS = 0xAC, INS_LDY_ABSX = 0xBC,
+            INS_STA_ZP = 0x85, INS_STA_ZPX = 0x95, INS_STA_ABS = 0x8D, INS_STA_ABSX = 0x9D, INS_STA_ABSY = 0x99, INS_STA_XIND = 0x81, INS_STA_INDY = 0x91,
+            INS_STX_ZP = 0x86, INS_STX_ZPY = 0x96, INS_STX_ABS = 0x8E,
+            INS_STY_ZP = 0x84, INS_STY_ZPX = 0x94, INS_STY_ABS = 0x8C,
     //Logical Operations
     INS_AND_IM = 0x29, INS_AND_ZP = 0x25, INS_AND_ZPX = 0x35, INS_AND_ABS = 0x2D, INS_AND_ABSX = 0x3D, INS_AND_ABSY = 0x39, INS_AND_XIND = 0x21, INS_AND_INDY = 0x31, INS_AND_ZPIND = 0x32,
-    INS_ORA_IM = 0x09, INS_ORA_ZP = 0x05, INS_ORA_ZPX = 0x15, INS_ORA_ABS = 0x0D, INS_ORA_ABSX = 0x1D, INS_ORA_ABSY = 0x19, INS_ORA_XIND = 0x01, INS_ORA_INDY = 0x11, INS_ORA_ZPIND = 0x12,
-    INS_EOR_IM = 0x49, INS_EOR_ZP = 0x45, INS_EOR_ZPX = 0x55, INS_EOR_ABS = 0x4D, INS_EOR_ABSX = 0x5D, INS_EOR_ABSY = 0x59, INS_EOR_XIND = 0x41, INS_EOR_INDY = 0x51, INS_EOR_ZPIND = 0x52,
-    INS_BIT_IM = 0x89, INS_BIT_ZP = 0x24, INS_BIT_ABS = 0x2C, INS_BIT_ZPX = 0x34, INS_BIT_ABSX = 0x3C,
+            INS_ORA_IM = 0x09, INS_ORA_ZP = 0x05, INS_ORA_ZPX = 0x15, INS_ORA_ABS = 0x0D, INS_ORA_ABSX = 0x1D, INS_ORA_ABSY = 0x19, INS_ORA_XIND = 0x01, INS_ORA_INDY = 0x11, INS_ORA_ZPIND = 0x12,
+            INS_EOR_IM = 0x49, INS_EOR_ZP = 0x45, INS_EOR_ZPX = 0x55, INS_EOR_ABS = 0x4D, INS_EOR_ABSX = 0x5D, INS_EOR_ABSY = 0x59, INS_EOR_XIND = 0x41, INS_EOR_INDY = 0x51, INS_EOR_ZPIND = 0x52,
+            INS_BIT_IM = 0x89, INS_BIT_ZP = 0x24, INS_BIT_ABS = 0x2C, INS_BIT_ZPX = 0x34, INS_BIT_ABSX = 0x3C,
     //JUmps and Calls
     INS_RTS = 0x60,
-    INS_JMP_ABS = 0x4C, INS_JMP_IND = 0x6C, INS_JMP_ABS_IND = 0x7C,
-    INS_JSR = 0x20,
+            INS_JMP_ABS = 0x4C, INS_JMP_IND = 0x6C, INS_JMP_ABS_IND = 0x7C,
+            INS_JSR = 0x20,
     //Stack Operations
     INS_PHA_IMP = 0x48,
-    INS_PHP_IMP = 0x08,
-    INS_PHX_IMP = 0xDA,
-    INS_PHY_IMP = 0x5A,
-    INS_PLA_IMP = 0x68,
-    INS_PLP_IMP = 0x28,
-    INS_PLX_IMP = 0xFA,
-    INS_PLY_IMP = 0x7A,
-    INS_TSX_IMP = 0xBA,
-    INS_TXS_IMP = 0x9A,
+            INS_PHP_IMP = 0x08,
+            INS_PHX_IMP = 0xDA,
+            INS_PHY_IMP = 0x5A,
+            INS_PLA_IMP = 0x68,
+            INS_PLP_IMP = 0x28,
+            INS_PLX_IMP = 0xFA,
+            INS_PLY_IMP = 0x7A,
+            INS_TSX_IMP = 0xBA,
+            INS_TXS_IMP = 0x9A,
     //Register Transfers
     INS_TXA_IMP = 0x8A,
-    INS_TAX_IMP = 0xAA,
-    INS_TAY_IMP = 0xA8,
-    INS_TYA_IMP = 0x98,
+            INS_TAX_IMP = 0xAA,
+            INS_TAY_IMP = 0xA8,
+            INS_TYA_IMP = 0x98,
     //shift instructions
     INS_ASL_ABSX = 0x1E,
-    INS_ROL_ABSX = 0x3E,
-    INS_LSR_ABSX = 0x5E,
-    INS_ROR_ABSX = 0x7E;
+            INS_ROL_ABSX = 0x3E,
+            INS_LSR_ABSX = 0x5E,
+            INS_ROR_ABSX = 0x7E;
 };
-
-
 
 #endif //INC_65C02_EMULATION__65C02_H
