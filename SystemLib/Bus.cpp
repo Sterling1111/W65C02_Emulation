@@ -12,8 +12,8 @@ void Bus::write(byte data, word address) {
     }
     if(address >= ramMin && address <= ramMax)
         ram[address - ramMin] = data;
-    else if(address >= regMin && address <= regMax);
-        //65C22 write
+    else if(address >= regMin && address <= regMax)
+        registers.writeByteToRegisters(data, address - regMin);
     else if(address >= romMin && address <= romMax);
     //EEPROM can't write so does nothing
 }

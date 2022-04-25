@@ -4,7 +4,7 @@
 class _6502LoadRegisterBenchmarks : public benchmark::Fixture {
 public:
     const static benchmark::TimeUnit TimeUnit = benchmark::TimeUnit::kMicrosecond;
-    System system{0x0000, 0xFFFF, -1, -1, -1, -1, .01};
+    System system{0x0000, 0xFFFF, -1, -1, -1, -1, 1};
     W65C02& cpu = system.cpu;
     RAM& ram = system.ram;
     _6502LoadRegisterBenchmarks() {/* Iterations(3);*/}
