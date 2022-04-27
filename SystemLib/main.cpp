@@ -8,7 +8,7 @@
 using namespace sf;
 
 int main() {
-    System system{0x00, 0x3fff, 0x6000, 0x7fff, 0x8000, 0xffff, .001};
+    System system{0x00, 0x3fff, 0x6000, 0x7fff, 0x8000, 0xffff, .0001};
     system.loadProgram("a.out");
 
     RenderWindow window(VideoMode(400.f, 88.f), "SFML Application", Style::Close);

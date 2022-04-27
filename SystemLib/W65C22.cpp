@@ -27,7 +27,7 @@ void W65C22::writeByteToRegisters(byte data, word address) {
                 num |= (data & (1 << i));
             }
         }
-        write(data);
+        write(num);
     }
 }
 
