@@ -11,5 +11,6 @@
 *.sln text eol=crlf
 
 # Denote all files that are truly binary and should not be modified.
+*.out
 *.png binary
 *.jpg binary
