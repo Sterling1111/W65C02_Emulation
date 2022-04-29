@@ -10,25 +10,43 @@ void W65C22::reset() {
     }
 }
 
-byte W65C22::readByteFromRegisters(word address) {
+void W65C22::writeToRegisters(byte data, word address) {
+    registers[address & 0x0F] = data;
+    if((address & 0x0F) == 0) {     //IORB
+        byte num{};
+        for (int i = 0; i < 8; ++i) {
+            if(registers[2] & (1 << i)) {   //DDRB
+                num |= (data & (1 << i));
+            }
+        } portBWrite(num);
+    } else if((address & 0x0F) == 1) {  //IORA
+        byte num{};
+        for (int i = 0; i < 8; ++i) {
+            if(registers[3] & (1 << i)) {   //DDRA
+                num |= (data & (1 << i));
+            }
+        } portAWrite(num);
+    }
+}
+
+byte W65C22::readFromRegisters(word address) {
     return registers[address & 0x0F];
 }
 
-void W65C22::write(byte data) {
-    bus->write(data);
+void W65C22::portAWrite(byte data) {
+    bus->portAWrite(data);
 }
 
-void W65C22::writeByteToRegisters(byte data, word address) {
-    registers[address & 0x0F] = data;
-    if((address & 0x0F) == 0) {
-        byte num{};
-        for (int i = 0; i < 8; ++i) {
-            if(registers[2] & (1 << i)) {
-                num |= (data & (1 << i));
-            }
-        }
-        write(num);
-    }
+void W65C22::portBWrite(byte data) {
+    bus->portBWrite(data);
+}
+
+/*byte W65C22::portARead() {
+    return bus->portARead();
+}*/
+
+byte W65C22::portBRead() {
+    return bus->portBRead();
 }
 
 void W65C22::connectPortBus(PortBus* bus) {

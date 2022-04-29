@@ -10,7 +10,7 @@ public:
     void executeProgram(const std::string& programObjFile, uint64_t instructionsToExecute = std::numeric_limits<uint64_t>::max(), bool logging = false, const std::string& outFile = "");
     void loadProgram(const std::string& programObjFile);
 
-    Lights lights;
+    LCD lcd;
     PortBus portBus;
     W65C02 cpu{1};
     W65C22 registers{};

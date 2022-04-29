@@ -13,7 +13,8 @@ set(SYSTEM_LIB_SOURCES
         "Bus.cpp"
         "main.cpp"
         "Cycles.cpp"
-        "Lights.cpp")
+        "Lights.cpp"
+        "LCD.cpp")
 
 set(SFML_STATIC_LIBRARIES TRUE)
 set(SFML_DIR C:/SFML/lib/cmake/SFML)

@@ -1,14 +1,16 @@
 #include "PortBus.h"
 
-PortBus::PortBus(Lights& lights) : lights{lights} {}
+//PortBus::PortBus(Lights& lights) : lights{lights} {}
+PortBus::PortBus(LCD &lcd) : lcd{lcd} {};
 
-byte PortBus::read() const {
-    return lights.lights.to_ulong();
+void PortBus::portAWrite(byte data) {
+    lcd.portAWrite(data);
 }
 
-void PortBus::write(byte data) {
-    for(int i = 0; i < 8; i++) {
-        lights.lights.set(i, data & (1 << i));
-    }
+void PortBus::portBWrite(byte data) {
+    lcd.portBWrite(data);
+}
 
+byte PortBus::portBRead() const {
+    return lcd.portBRead();
 }

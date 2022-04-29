@@ -2,7 +2,7 @@
 
 System::System(sdword ramMin, sdword ramMax, sdword regMin, sdword regMax, sdword romMin, sdword romMax, double Mhz) :
         bus{ram,ramMin,ramMax,registers, regMin, regMax, eeprom,romMin,romMax},
-        portBus{lights}{
+        portBus{lcd}{
     cpu.connectBus(&bus);
     cpu.setCycleDuration(Mhz);
     registers.connectPortBus(&portBus);

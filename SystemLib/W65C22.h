@@ -7,9 +7,12 @@
 class W65C22 {
 public:
     W65C22();
-    byte readByteFromRegisters(word address);
-    void writeByteToRegisters(byte data, word address);
-    void write(byte data);
+    byte readFromRegisters(word address);
+    void writeToRegisters(byte data, word address);
+    void portAWrite(byte data);
+    void portBWrite(byte data);
+    //byte portARead();
+    byte portBRead();
     void reset();
     void connectPortBus(PortBus* bus);
 private:
