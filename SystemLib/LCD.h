@@ -23,7 +23,10 @@ public:
 private:
     VrEmuLcd *lcd{nullptr};
     uint8_t DR{}, IR{}, data_lines{};
-    bool RW{}, RS{}, busy{};
+    bool RW{}, RS{};
+public:
+    bool busy{};
+private:
     struct Enabled {
         bool enable_line{false};
         bool toggled_on{false};

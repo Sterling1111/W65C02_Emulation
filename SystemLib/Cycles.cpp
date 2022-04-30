@@ -37,5 +37,5 @@ void Cycles::reset() {
 sdword Cycles::getCycles() const {return cycles;}
 
 void Cycles::setCycleDuration(double Mhz) {
-    cycleDuration = (TCSFrequency - (30 * Mhz)) / Mhz;
+    cycleDuration = TCSFrequency / Mhz;
 }
