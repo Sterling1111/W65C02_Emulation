@@ -23,10 +23,6 @@ void LCD::writeByte(uint8_t data) {
     vrEmuLcdWriteByte(lcd, data);
 }
 
-void LCD::writeString(const char *str) {
-    vrEmuLcdWriteString(lcd, str);
-}
-
 void LCD::updatePixels() {
     vrEmuLcdUpdatePixels(lcd);
 }
@@ -49,20 +45,23 @@ void LCD::portAWrite(byte data) {
     RS = data & 0b00100000;
     if(E.toggled_on && !busy) {
         if(!RS && !RW) {
-            sendCommand(IR);
+            sendCommand(data_lines);
         } else if(!RS && RW) {
             data_lines = busy ? 0b10000000 : 0x00;
         } else if(RS && !RW) {
-            writeByte(DR);
+            writeByte(data_lines);
         } else {
-            data_lines = DR;
+            //unknown behavior
+        }
+    } else if(E.toggled_on && busy) {
+        if(!RS && RW) {
+            data_lines = busy ? 0b10000000 : 0x00;
         }
     }
 }
 
 void LCD::portBWrite(byte data) {
     data_lines = data;
-    DR = data;
 }
 
 byte LCD::portBRead() {

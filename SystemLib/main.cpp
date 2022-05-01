@@ -10,14 +10,12 @@ using namespace sf;
 
 int main() {
     LCD lcd;
-    System system{0x00, 0x3fff, 0x6000, 0x7fff, 0x8000, 0xffff, .003};
+    System system{0x00, 0x3fff, 0x6000, 0x7fff, 0x8000, 0xffff, .5};
     system.loadProgram("a.out");
-    //TODO - why cursor turn on from the command sent by a.out?? we need to find out
-    system.lcd.sendCommand(0b00001110);
     uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 60);     //30 Hz
     uint64_t lcdFunctionDuration = (Cycles::getTSCFrequency() * 37);           //37 us
 
-    RenderWindow window(VideoMode(400.f, 88.f), "SFML Application" /*Style::Close*/);
+    RenderWindow window(VideoMode(400.f, 88.f), "SFML Application", Style::Close);
     RectangleShape lcdScreen;
     lcdScreen.setSize(Vector2f(380.f, 68.f));
     lcdScreen.setPosition(10.f, 10.f);

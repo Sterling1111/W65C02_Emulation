@@ -11,7 +11,6 @@ public:
     ~LCD();
     void sendCommand(uint8_t data);
     void writeByte(uint8_t data);
-    void writeString(const char *str);
     void updatePixels();
     char pixelState(int x, int y);
     int numPixelsX();
@@ -22,7 +21,7 @@ public:
 
 private:
     VrEmuLcd *lcd{nullptr};
-    uint8_t DR{}, IR{}, data_lines{};
+    uint8_t data_lines{};
     bool RW{}, RS{};
 public:
     bool busy{};
