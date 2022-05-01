@@ -2,15 +2,12 @@
 #include <SFML/Graphics.hpp>
 #include "System.h"
 #include <cstdint>
-#include <intrin.h>
-#include "PortBus.h"
-#include "LCD.h"
 
 using namespace sf;
 
 int main() {
     LCD lcd;
-    System system{0x00, 0x3fff, 0x6000, 0x7fff, 0x8000, 0xffff, .5};
+    System system{0x00, 0x3fff, 0x6000, 0x7fff, 0x8000, 0xffff, 1};
     system.loadProgram("a.out");
     uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 60);     //30 Hz
     uint64_t lcdFunctionDuration = (Cycles::getTSCFrequency() * 37);           //37 us
