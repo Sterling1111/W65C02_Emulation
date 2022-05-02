@@ -5,14 +5,15 @@
 
 using namespace sf;
 
-int main() {
-    LCD lcd;
-    System system{0x00, 0x3fff, 0x6000, 0x7fff, 0x8000, 0xffff, 1};
+bool running{true};
+Mutex mutex;
+
+void RenderThread(RenderWindow* window) {
+    System system{0x00, 0x3fff, 0x6000, 0x7fff, 0x8000, 0xffff, 1.02};
     system.loadProgram("a.out");
     uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 60);     //30 Hz
     uint64_t lcdFunctionDuration = (Cycles::getTSCFrequency() * 37);           //37 us
 
-    RenderWindow window(VideoMode(400.f, 88.f), "SFML Application", Style::Close);
     RectangleShape lcdScreen;
     lcdScreen.setSize(Vector2f(380.f, 68.f));
     lcdScreen.setPosition(10.f, 10.f);
@@ -31,16 +32,18 @@ int main() {
         }
     }
 
-    if(window.isOpen()) {
-        window.draw(lcdScreen);
-        window.display();
+    if(window->isOpen()) {
+        window->draw(lcdScreen);
+        window->display();
     }
 
     uint64_t renderStartTimePoint = __builtin_ia32_rdtsc();
     uint64_t lcdInstructionStartTimePoint;
     bool lcdInstructionCounterStarted{false};
-    while (window.isOpen())
+    mutex.lock();
+    while (running)
     {
+        mutex.unlock();
         system.cpu.execute(1);
         if(system.lcd.busy) {
             if(lcdInstructionCounterStarted) {
@@ -52,18 +55,11 @@ int main() {
                 lcdInstructionStartTimePoint = __builtin_ia32_rdtsc();
             }
         }
-        Event event;
-
-        while (window.pollEvent(event))
-        {
-            if (event.type == Event::Closed)
-                window.close();
-        }
 
 
         if((__builtin_ia32_rdtsc() - renderStartTimePoint) > renderDuration) {
-            window.clear();
-            window.draw(lcdScreen);
+            window->clear();
+            window->draw(lcdScreen);
 
             system.lcd.updatePixels();   // generates a snapshot of the pixels state
             for (int y = 0; y < system.lcd.numPixelsY(); ++y) {
@@ -74,20 +70,46 @@ int main() {
                     } else {
                         pixels[x][y]->setFillColor(Color(240, 240, 255, 255));
                     }
-                    window.draw(*pixels[x][y]);
+                    window->draw(*pixels[x][y]);
                 }
             }
-            window.display();
+            window->display();
             renderStartTimePoint = __builtin_ia32_rdtsc();
         }
-
+        mutex.lock();
     }
-
     for (int y = 0; y < system.lcd.numPixelsY(); ++y) {
         for (int x = 0; x < system.lcd.numPixelsX(); ++x) {
             delete pixels[x][y];
         }
     }
+}
+
+int main() {
+    //LCD lcd;
+
+
+    RenderWindow window(VideoMode(400.f, 88.f), "W65C02 Emulation", Style::Close);
+    Thread renderThread(&RenderThread, &window);
+    window.setActive(false);
+    renderThread.launch();
+    Time delayTime = milliseconds(10);
+
+    while(running) {
+        sleep(delayTime);
+        Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == Event::Closed) {
+                mutex.lock();
+                running = false;
+                mutex.unlock();
+            }
+
+        }
+    }
+    renderThread.wait();
+    window.close();
     return 0;
 }
 
