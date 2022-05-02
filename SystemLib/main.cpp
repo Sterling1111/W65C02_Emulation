@@ -83,6 +83,7 @@ void RenderThread(RenderWindow* window) {
             delete pixels[x][y];
         }
     }
+    window->setActive(false);
 }
 
 int main() {
@@ -109,6 +110,7 @@ int main() {
         }
     }
     renderThread.wait();
+    window.setActive(true);
     window.close();
     return 0;
 }
