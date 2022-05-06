@@ -1,3 +1,4 @@
+#include <iostream>
 #include "W65C02.h"
 
 W65C02::W65C02(double Mhz) {
@@ -45,6 +46,20 @@ void W65C02::reset(word pc) {
     PS.set(StatusFlags::B);
     PS.set(StatusFlags::I);
     A = X = Y = 0;
+}
+
+void W65C02::interruptRequest() {
+    if(PS.test(StatusFlags::I)) return;
+    readByte(PC);
+    readByte(PC);
+    pushWordToStack(PC);
+    pushByteToStack(PS.to_ulong());
+    PC = readByte(0xFFFE) | readByte(0xFFFF) << 8;
+    PS.set(StatusFlags::I, true);
+}
+
+void W65C02::nonMaskableInterrupt() {
+
 }
 
 /**
@@ -377,7 +392,11 @@ word W65C02::stackB(byte W65C02::* Register, const std::function<byte(byte)>& op
 }
 
 word W65C02::stackC(byte W65C02::* Register, const std::function<byte(byte)>& op) {
-    return 0;
+    pullByteFromStack();
+    PS = pullByteFromStack();
+    byte PCL = pullByteFromStack();
+    byte PCH = readByteFromStack();
+    return (PCH << 8) | PCL;
 }
 
 word W65C02::stackD(byte W65C02::* Register, const std::function<byte(byte)>& op) {
@@ -419,6 +438,9 @@ word W65C02::zeroPageIndirect(byte W65C02::* Register, const std::function<byte(
 
 void W65C02::execute(uint64_t numInstructionsToExecute) {
     while(numInstructionsToExecute--) {
+        if(IRQB) {
+            interruptRequest();
+        }
         opcode = opCodeMatrix[fetchByte()];
         (this->*(opcode.instruction))(opcode.addrMode);
     }
@@ -828,7 +850,7 @@ void W65C02::ROR(word (W65C02::* addrMode)(byte W65C02::*, const std::function<b
 }
 
 void W65C02::RTI(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, nullptr);
 }
 
 void W65C02::RTS(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {

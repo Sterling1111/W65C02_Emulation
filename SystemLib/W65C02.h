@@ -20,6 +20,7 @@ public:
     word PC{};    //program counter
     byte SP{};    //stack pointer
     byte A{}, X{}, Y{};   //registers
+    bool RESB{}, IRQB{}, NMIB{};
     //this will be set equal to PS when PS needs to be pushed onto stack
     byte PS_byte{};
     Bus* bus;
@@ -46,6 +47,8 @@ public:
     void initializeOpcodeMatrix();
     void setCycleDuration(double Mhz);
     void reset(word pc=0xFFFE);
+    void interruptRequest();
+    void nonMaskableInterrupt();
     word readWord(word address);
     byte readByte(word address);
     byte fetchByte();
