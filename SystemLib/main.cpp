@@ -11,7 +11,7 @@ Mutex mutex;
 void RenderThread(RenderWindow* window, System* system, bool& running) {
     uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 60);     //30 Hz
     //TODO - the lcd screen is displaying nonsense data when the lcdFunctionDuration is too high
-    uint64_t lcdFunctionDuration = (Cycles::getTSCFrequency() * 3);           //37 us
+    uint64_t lcdFunctionDuration = (Cycles::getTSCFrequency() * 37);           //37 us
 
     RectangleShape lcdScreen;
     lcdScreen.setSize(Vector2f(380.f, 68.f));
@@ -91,7 +91,7 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
 
 int main() {
     System system{0x00, 0x3fff, 0x6000, 0x7fff,
-                  0x8000, 0xffff, .0005};
+                  0x8000, 0xffff, 2.0};
     system.loadProgram("a.out");
     RenderWindow window(VideoMode(400.f, 88.f),
                         "W65C02 Emulation", Style::Close);
@@ -120,7 +120,6 @@ int main() {
                 }
                 else if(event.key.code == Keyboard::R) {
                     mutex.lock();
-                    std::cout << "Reset triggered" << std::endl;
                     system.cpu.reset(system.eeprom[0xFFFC - 0x8000] | system.eeprom[0xFFFD - 0x8000] << 8);
                     mutex.unlock();
                 }
