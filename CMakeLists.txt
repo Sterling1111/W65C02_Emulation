@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project( _65C02_system_emulation )
+project( W65C02_emulation )
 
 ## Project-wide setup
 set(CMAKE_CXX_STANDARD 14)

@@ -17,10 +17,10 @@ set(SYSTEM_LIB_SOURCES
         "LCD.cpp")
 
 set(SFML_STATIC_LIBRARIES TRUE)
-set(SFML_DIR C:/SFML/lib/cmake/SFML)
+set(SFML_DIR ${CMAKE_SOURCE_DIR}/SFML/lib/cmake/SFML)
 find_package(SFML COMPONENTS system window graphics audio network REQUIRED)
 
-include_directories(c:/SFML/include)
+include_directories(${CMAKE_SOURCE_DIR}/SFML/include)
 
 add_library( SystemLib ${SYSTEM_LIB_SOURCES})
 

@@ -10,7 +10,7 @@ RS  = %00100000
     .org $8000
 
 ;this is the start of the program
-main:        
+reset:
     ldx #$ff    
     txs             ;transfer the contents of x register($ff) to stack register
 
@@ -91,7 +91,12 @@ print_char:
     sta PORTA
     rts
 
-    .org $fffc
-    .word main
-    .word $0000
+nmi:
+irq:
+    rti
+
+    .org $fffa
+    .word nmi
+    .word reset
+    .word irq
     
