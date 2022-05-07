@@ -20,7 +20,7 @@ public:
     word PC{};    //program counter
     byte SP{};    //stack pointer
     byte A{}, X{}, Y{};   //registers
-    bool RESB{}, IRQB{}, NMIB{};
+    bool IRQB{}, NMIB{}, STOP{}, WAIT{};
     //this will be set equal to PS when PS needs to be pushed onto stack
     byte PS_byte{};
     Bus* bus;

@@ -46,20 +46,31 @@ void W65C02::reset(word pc) {
     PS.set(StatusFlags::B);
     PS.set(StatusFlags::I);
     A = X = Y = 0;
+    STOP = WAIT = false;
 }
 
 void W65C02::interruptRequest() {
+    WAIT = false;
     if(PS.test(StatusFlags::I)) return;
+    PS.reset(StatusFlags::B);
     readByte(PC);
     readByte(PC);
     pushWordToStack(PC);
     pushByteToStack(PS.to_ulong());
     PC = readByte(0xFFFE) | readByte(0xFFFF) << 8;
     PS.set(StatusFlags::I, true);
+    PS.reset(StatusFlags::D);
 }
 
 void W65C02::nonMaskableInterrupt() {
-
+    WAIT = false;
+    readByte(PC);
+    readByte(PC);
+    pushWordToStack(PC);
+    pushByteToStack(PS.to_ulong());
+    PC = readByte(0xFFFA) | readByte(0xFFFB) << 8;
+    PS.set(StatusFlags::I, true);
+    PS.reset(StatusFlags::D);
 }
 
 /**
@@ -232,11 +243,15 @@ word W65C02::impliedA(byte W65C02::* Register, const std::function<byte(byte)>& 
 
 //TODO - wait for interupt
 word W65C02::impliedB(byte W65C02::* Register, const std::function<byte(byte)>& op) {
+    readByte(PC);
+    readByte(PC);
     return 0;
 }
 
 //TODO - stop the clock
 word W65C02::impliedC(byte W65C02::* Register, const std::function<byte(byte)>& op) {
+    readByte(PC);
+    readByte(PC);
     return 0;
 }
 
@@ -388,7 +403,12 @@ word W65C02::stackA(byte W65C02::* Register, const std::function<byte(byte)>& op
 }
 
 word W65C02::stackB(byte W65C02::* Register, const std::function<byte(byte)>& op) {
-    return 0;
+    fetchByte();
+    pushWordToStack(PC);
+    PS.set(StatusFlags::B, true);
+    pushByteToStack(PS.to_ulong());
+    PS.set(StatusFlags::I, true);
+    return readByte(0xFFFE) | readByte(0xFFFF) << 8;
 }
 
 word W65C02::stackC(byte W65C02::* Register, const std::function<byte(byte)>& op) {
@@ -438,8 +458,12 @@ word W65C02::zeroPageIndirect(byte W65C02::* Register, const std::function<byte(
 
 void W65C02::execute(uint64_t numInstructionsToExecute) {
     while(numInstructionsToExecute--) {
-        if(IRQB) {
-            interruptRequest();
+        if(STOP) continue;
+        if(WAIT) continue;
+        if(IRQB) interruptRequest();
+        if(NMIB) {
+            nonMaskableInterrupt();
+            NMIB = false;
         }
         opcode = opCodeMatrix[fetchByte()];
         (this->*(opcode.instruction))(opcode.addrMode);
@@ -619,7 +643,7 @@ void W65C02::BRA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<b
 }
 
 void W65C02::BRK(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
-
+    PC = (this->*addrMode)(nullptr, nullptr);
 }
 
 void W65C02::BVC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
@@ -934,7 +958,8 @@ void W65C02::STA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<b
 }
 
 void W65C02::STP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
-
+    (this->*addrMode)(nullptr, nullptr);
+    STOP = true;
 }
 
 void W65C02::STX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
@@ -994,7 +1019,8 @@ void W65C02::TYA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<b
 }
 
 void W65C02::WAI(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
-
+    (this->*addrMode)(nullptr, nullptr);
+    WAIT = true;
 }
 
 void W65C02::XXX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {

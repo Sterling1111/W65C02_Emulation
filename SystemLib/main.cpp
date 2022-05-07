@@ -9,7 +9,7 @@ Mutex mutex;
 
 
 void RenderThread(RenderWindow* window, System* system, bool& running) {
-    uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 10);     //30 Hz
+    uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 60);     //30 Hz
     //TODO - the lcd screen is displaying nonsense data when the lcdFunctionDuration is too high
     uint64_t lcdFunctionDuration = (Cycles::getTSCFrequency() * 3);           //37 us
 
@@ -17,6 +17,7 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
     lcdScreen.setSize(Vector2f(380.f, 68.f));
     lcdScreen.setPosition(10.f, 10.f);
     lcdScreen.setFillColor(Color(31, 31, 255, 255));
+    lcdScreen.setFillColor(Color::Transparent);
 
     RectangleShape* pixels[system->lcd.numPixelsX()][system->lcd.numPixelsY()];
 
@@ -26,12 +27,11 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
             pixels[x][y]->setSize(Vector2f(3.f, 3.f));
             pixels[x][y]->setPosition(Vector2f(lcdScreen.getPosition().x + x * 4, lcdScreen.getPosition().y + y * 4));
             pixels[x][y]->setFillColor(Color::White);
-            pixels[x][y]->setOutlineThickness(3);
-            pixels[x][y]->setOutlineColor(Color::Transparent);
         }
     }
 
     if(window->isOpen()) {
+        window->clear(Color(31, 31, 255, 255));
         window->draw(lcdScreen);
         window->display();
     }
@@ -58,7 +58,7 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
 
 
         if((__builtin_ia32_rdtsc() - renderStartTimePoint) > renderDuration) {
-            window->clear();
+            window->clear(Color(31, 31, 255, 255));
             window->draw(lcdScreen);
 
             system->lcd.updatePixels();   // generates a snapshot of the pixels state
@@ -66,7 +66,11 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
                 for (int x = 0; x < system->lcd.numPixelsX(); ++x) {
                     char pixel{system->lcd.pixelState(x, y)};
                     if(pixel == -1 || pixel == 0) {
-                        pixels[x][y]->setFillColor(Color(0, 0, 224, 255));
+                        if(y == 8 || x % 6 == 5) {
+                            pixels[x][y]->setFillColor(Color(31, 31, 255, 255));
+                        } else {
+                            pixels[x][y]->setFillColor(Color(0, 0, 224, 255));
+                        }
                     } else {
                         pixels[x][y]->setFillColor(Color(240, 240, 255, 255));
                     }
@@ -86,9 +90,10 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
 }
 
 int main() {
-    System system{0x00, 0x3fff, 0x6000, 0x7fff, 0x8000, 0xffff, .0004};
+    System system{0x00, 0x3fff, 0x6000, 0x7fff, 0x8000, 0xffff, .001};
     system.loadProgram("a.out");
-    RenderWindow window(VideoMode(400.f, 88.f), "W65C02 Emulation");
+    RenderWindow window(VideoMode(400.f, 88.f), "W65C02 Emulation", Style::Close);
+    window.setKeyRepeatEnabled(false);
     bool running{true};
     Thread renderThread([capture0 = &window, capture1 = &system, &running] { return RenderThread(capture0, capture1, running); });
     window.setActive(false);
@@ -111,6 +116,11 @@ int main() {
             if (event.type == Event::KeyReleased) {
                 if (event.key.code == Keyboard::I) {
                     system.cpu.IRQB = false;
+                }
+            }
+            if(event.type == Event::KeyPressed) {
+                if (event.key.code == Keyboard::N) {
+                    system.cpu.NMIB = true;
                 }
             }
             if (event.type == Event::KeyReleased) {

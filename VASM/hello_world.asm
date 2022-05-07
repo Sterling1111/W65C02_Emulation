@@ -39,13 +39,13 @@ main:
     
 print:
     lda message, x  ;lda from address of message + x
-    beq loop        ;when a gets the 0 at the end of message it will terminate              
+    beq STOP        ;when a gets the 0 at the end of message it will terminate
     jsr print_char
     inx
     jmp print
 
-loop:
-    jmp loop
+STOP:
+    stp
 
 message: .asciiz "Hello, world!" ;this will put a 0 at the end of the string
 
