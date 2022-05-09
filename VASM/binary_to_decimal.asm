@@ -93,7 +93,7 @@ ignore_result:
 
 print:
   lda message,x
-  beq return
+  beq loop
   jsr print_char
   inx
   jmp print

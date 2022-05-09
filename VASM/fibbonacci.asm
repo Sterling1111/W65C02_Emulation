@@ -8,8 +8,8 @@ mod10 = $0202 ; 2 bytes
 message = $0204 ; 6 bytes
 counter = $020a
 Fn = $2000
-Fn_1 = $2001
-Fn_2 = $2002
+Fn_1 = $2002
+Fn_2 = $2004
 
 E  = %10000000
 RW = %01000000
@@ -40,45 +40,62 @@ restart:
   jsr lcd_instruction
   lda #$0
   sta Fn_2
-  lda #$01
-  sta Fn_1
-
-  lda #$0
-
-fibbonacci:
-  jsr delay
+  sta Fn
+  sta Fn_2 + 1
+  sta Fn + 1
   jsr print_num
   jsr delay
-  pha
   lda #%00000001 ; Clear display
   jsr lcd_instruction
-  pla
-  clc
-  adc Fn_2
-  clc
-  adc Fn_1
-  bcs restart
-  ldx Fn_1
-  stx Fn_2
+  jsr short_delay
+  lda #$01
   sta Fn_1
-  jmp fibbonacci
+  sta Fn
+  lda #$0
+  sta Fn_1 + 1
+  sta Fn + 1
+  jsr print_num
+  jsr delay
+  lda #%00000001 ; Clear display
+  jsr lcd_instruction
+  jsr short_delay
+  sta Fn
+  lda #$00
+  sta Fn + 1
 
+fibbonacci:
+  clc
+  cld
+  lda Fn_1
+  adc Fn_2
+  sta Fn
+  lda Fn_1 + 1
+  adc Fn_2 + 1
+  bcs restart
+  sta Fn + 1
+  jsr print_num
+  jsr delay
+  lda #%00000001 ; Clear display
+  jsr lcd_instruction
+  jsr short_delay
+  lda Fn_1
+  sta Fn_2
+  lda Fn_1 + 1
+  sta Fn_2 + 1
+  lda Fn
+  sta Fn_1
+  lda Fn + 1
+  sta Fn_1 + 1
+  jmp fibbonacci
   
 print_num:
-  pha
   lda #0
   sta message
-  pla
-
-  ; Initialize value to be the number to convert
-  ;lda #255
-  ;lda number
+  lda Fn
   sta value
-  pha
-  lda #$00
-  ;lda number + 1
+  lda Fn + 1
   sta value + 1
-  pla
+
 
 divide:
   ; Initialize the remainder to zero
@@ -88,6 +105,8 @@ divide:
   clc
 
   ldx #16
+
+
 
 divloop:
   ; Rotate quotient and remainder
@@ -199,17 +218,6 @@ print_char:
   sta PORTA
   rts
 
-nmi:
-  rti
-
-
-irq:
-  inc counter
-  bne exit_irq
-  inc counter + 1
-exit_irq:
-  rti
-
 delay:
   phy
   phx
@@ -226,6 +234,27 @@ delay1:
   ply
   rts
 
-  .org $fffc
+short_delay:
+  phy
+  phx
+  ldy #$3f
+delay2s:
+  ldx #$ff
+delay1s:
+  nop
+  dex
+  bne delay1s
+  dey
+  bne delay2s
+  plx
+  ply
+  rts
+
+nmi:
+irq:
+    rti
+
+  .org $fffa
+  .word nmi
   .word reset
-  .word $0000
+  .word irq

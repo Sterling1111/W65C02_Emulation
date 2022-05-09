@@ -91,7 +91,7 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
 
 int main() {
     System system{0x00, 0x3fff, 0x6000, 0x7fff,
-                  0x8000, 0xffff, 2.0};
+                  0x8000, 0xffff, .75};
     system.loadProgram("a.out");
     RenderWindow window(VideoMode(400.f, 88.f),
                         "W65C02 Emulation", Style::Close);
@@ -109,9 +109,8 @@ int main() {
         Event event;
         while (window.pollEvent(event))
         {
-            if (event.type == Event::Closed) {
+            if (event.type == Event::Closed)
                 running = false;
-            }
             if(event.type == Event::KeyPressed) {
                 if (event.key.code == Keyboard::I)
                     system.cpu.IRQB = true;
@@ -123,7 +122,6 @@ int main() {
                     system.cpu.reset(system.eeprom[0xFFFC - 0x8000] | system.eeprom[0xFFFD - 0x8000] << 8);
                     mutex.unlock();
                 }
-
             }
             if (event.type == Event::KeyReleased) {
                 if (event.key.code == Keyboard::I)
