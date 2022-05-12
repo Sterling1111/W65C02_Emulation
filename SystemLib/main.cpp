@@ -7,12 +7,8 @@ using namespace sf;
 
 Mutex mutex;
 
-
 void RenderThread(RenderWindow* window, System* system, bool& running) {
     uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 60);     //30 Hz
-    //TODO - the lcd screen is displaying nonsense data when the lcdFunctionDuration is too high
-    uint64_t lcdFunctionDuration = (Cycles::getTSCFrequency() * 37);           //37 us
-
     RectangleShape lcdScreen;
     lcdScreen.setSize(Vector2f(380.f, 68.f));
     lcdScreen.setPosition(10.f, 10.f);
@@ -37,25 +33,13 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
     }
 
     uint64_t renderStartTimePoint = __builtin_ia32_rdtsc();
-    uint64_t lcdInstructionStartTimePoint;
-    bool lcdInstructionCounterStarted{false};
     while (running)
     {
-        mutex.lock();
-        system->cpu.execute(1);
-        mutex.unlock();
-        if(system->lcd.busy) {
-            if(lcdInstructionCounterStarted) {
-                if((__builtin_ia32_rdtsc() - lcdInstructionStartTimePoint) > lcdFunctionDuration) {
-                    system->lcd.busy = false;
-                    lcdInstructionCounterStarted = false;
-                }
-            } else {
-                lcdInstructionCounterStarted = true;
-                lcdInstructionStartTimePoint = __builtin_ia32_rdtsc();
-            }
+        if(system->firstReset) {
+            mutex.lock();
+            system->cpu.execute(1);
+            mutex.unlock();
         }
-
 
         if((__builtin_ia32_rdtsc() - renderStartTimePoint) > renderDuration) {
             window->clear(Color(31, 31, 255, 255));
@@ -64,15 +48,31 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
             system->lcd.updatePixels();   // generates a snapshot of the pixels state
             for (int y = 0; y < system->lcd.numPixelsY(); ++y) {
                 for (int x = 0; x < system->lcd.numPixelsX(); ++x) {
-                    char pixel{system->lcd.pixelState(x, y)};
-                    if(pixel == -1 || pixel == 0) {
-                        if(y == 8 || x % 6 == 5) {
-                            pixels[x][y]->setFillColor(Color(31, 31, 255, 255));
+                    RectangleShape* pixel = pixels[x][y];
+                    uint8_t red = pixel->getFillColor().r;
+                    uint8_t alpha = pixel->getFillColor().a;
+                    if(y == 8 || x % 6 == 5) {
+                        pixels[x][y]->setFillColor(Color(31, 31, 255, 255));
+                        continue;
+                    }
+                    if(!system->firstReset) {
+                        if(y < 8) {
+                            pixels[x][y]->setFillColor(Color::White);
                         } else {
-                            pixels[x][y]->setFillColor(Color(0, 0, 224, 255));
+                            pixels[x][y]->setFillColor(Color(0, 0, 224, 100));
                         }
                     } else {
-                        pixels[x][y]->setFillColor(Color(240, 240, 255, 255));
+                        char pixelState{system->lcd.pixelState(x, y)};
+                        if(pixelState == -1 || pixelState == 0) {
+                            if(red != 0) {
+                                auto rg = red * .85;
+                                pixel->setFillColor(Color(rg, rg, 224, 225));
+                            } else {
+                                pixels[x][y]->setFillColor(Color(0, 0, 224, 225));
+                            }
+                        } else {
+                            pixels[x][y]->setFillColor(Color::White);
+                        }
                     }
                     window->draw(*pixels[x][y]);
                 }
@@ -91,7 +91,7 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
 
 int main() {
     System system{0x00, 0x3fff, 0x6000, 0x7fff,
-                  0x8000, 0xffff, .75};
+                  0x8000, 0xffff, 10};
     system.loadProgram("a.out");
     RenderWindow window(VideoMode(400.f, 88.f),
                         "W65C02 Emulation", Style::Close);
@@ -119,6 +119,7 @@ int main() {
                 }
                 else if(event.key.code == Keyboard::R) {
                     mutex.lock();
+                    system.firstReset = true;
                     system.cpu.reset(system.eeprom[0xFFFC - 0x8000] | system.eeprom[0xFFFD - 0x8000] << 8);
                     mutex.unlock();
                 }

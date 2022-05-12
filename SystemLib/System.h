@@ -17,6 +17,7 @@ public:
     RAM ram{};
     EEPROM eeprom{};
     Bus bus;
+    bool firstReset{};
 };
 
 #endif //INC_65C02_EMULATION_SYSTEM_H

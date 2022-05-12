@@ -1,3 +1,4 @@
+#include <iostream>
 #include "LCD.h"
 
 LCD::LCD() {
@@ -15,11 +16,13 @@ LCD::~LCD() {
 
 void LCD::sendCommand(uint8_t data) {
     busy = true;
+    lcdInstructionStartTimePoint = __builtin_ia32_rdtsc();
     vrEmuLcdSendCommand(lcd, data);
 }
 
 void LCD::writeByte(uint8_t data) {
     busy = true;
+    lcdInstructionStartTimePoint = __builtin_ia32_rdtsc();
     vrEmuLcdWriteByte(lcd, data);
 }
 
@@ -46,24 +49,26 @@ void LCD::portAWrite(byte data) {
     if(E.toggled_on && !busy) {
         if(!RS && !RW) {
             sendCommand(data_lines);
-        } else if(!RS && RW) {
-            data_lines = busy ? 0b10000000 : 0x00;
-        } else if(RS && !RW) {
+        } else if(!RS) {
+            data_lines = 0x00;
+        } else if(!RW) {
             writeByte(data_lines);
         } else {
             //unknown behavior
         }
     } else if(E.toggled_on && busy) {
         if(!RS && RW) {
-            data_lines = busy ? 0b10000000 : 0x00;
+            data_lines = 0b10000000;
         }
     }
+    if((__builtin_ia32_rdtsc() - lcdInstructionStartTimePoint) > lcdFunctionDuration)
+        busy = false;
 }
 
 void LCD::portBWrite(byte data) {
     data_lines = data;
 }
 
-byte LCD::portBRead() {
+byte LCD::portBRead() const {
     return data_lines;
 }

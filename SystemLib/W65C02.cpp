@@ -1024,8 +1024,7 @@ void W65C02::WAI(word (W65C02::* addrMode)(byte W65C02::*, const std::function<b
 }
 
 void W65C02::XXX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)) {
-    //NOP(addrMode);
-    exit(69420);
+    NOP(addrMode);
 }
 
 void W65C02::NZSetStatus(byte value) {

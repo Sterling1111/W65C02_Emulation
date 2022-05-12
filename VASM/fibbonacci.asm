@@ -237,7 +237,7 @@ delay1:
 short_delay:
   phy
   phx
-  ldy #$3f
+  ldy #$6f
 delay2s:
   ldx #$ff
 delay1s:

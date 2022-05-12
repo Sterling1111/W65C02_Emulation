@@ -30,7 +30,8 @@ void W65C22::writeToRegisters(byte data, word address) {
 }
 
 byte W65C22::readFromRegisters(word address) {
-    return registers[address & 0x0F];
+    if((address & 0xF) == 0) //IORB
+        return portBRead();
 }
 
 void W65C22::portAWrite(byte data) {

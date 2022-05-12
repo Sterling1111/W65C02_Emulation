@@ -52,7 +52,6 @@ increment:
     beq restart
 continue:
     jsr print_number
-    ;wai
     jsr delay
     lda #%00000001 ; Clear display
     jsr lcd_instruction
@@ -111,6 +110,7 @@ ignore_result:
     bne divide ; branch if value not equal to 0
 
     ldx #0
+
 
 print:
     lda message,x
@@ -192,7 +192,7 @@ irq:
 delay:
     phy
     phx
-    ldy #$1
+    ldy #$29
 delay2:
     ldx #$ff
 delay1:

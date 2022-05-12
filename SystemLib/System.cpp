@@ -18,7 +18,7 @@ void System::executeProgram(const std::string& programObjFile, uint64_t instruct
 
 void System::loadProgram(const std::string &programObjFile) {
     eeprom.loadProgram(programObjFile);
-    cpu.reset(eeprom[0xFFFC - 0x8000] | eeprom[0xFFFD - 0x8000] << 8);
+    cpu.reset(0);
     registers.reset();
     bus.log = false;
 }

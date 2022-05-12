@@ -4,6 +4,7 @@
 
 #include "vrEmuLcd.h"
 #include "system_types.h"
+#include "Cycles.h"
 
 class LCD {
 public:
@@ -16,13 +17,15 @@ public:
     int numPixelsX();
     int numPixelsY();
     void portAWrite(byte data);
-    byte portBRead();
+    byte portBRead() const;
     void portBWrite(byte data);
 
 private:
     VrEmuLcd *lcd{nullptr};
     uint8_t data_lines{};
     bool RW{}, RS{};
+    uint64_t lcdInstructionStartTimePoint{};
+    uint64_t lcdFunctionDuration{Cycles::getTSCFrequency() * 37};
 public:
     bool busy{};
 private:

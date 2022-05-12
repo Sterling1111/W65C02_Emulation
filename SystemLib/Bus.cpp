@@ -27,7 +27,7 @@ byte Bus::read(word address) {
         return ram[address - ramMin];
     }
     else if(address >= regMin && address <= regMax) {
-
+        return registers.readFromRegisters(address - regMin);
     }
     else if(address >= romMin && address <= romMax) {
         byte data{eeprom[address - romMin]};
