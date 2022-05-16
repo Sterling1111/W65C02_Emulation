@@ -93,13 +93,13 @@ ignore_result:
 
 print:
   lda message,x
-  beq loop
+  beq STOP
   jsr print_char
   inx
   jmp print
 
-loop:
-  jmp loop
+STOP:
+  stp
 
 number: .word 1729
 

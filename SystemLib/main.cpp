@@ -52,14 +52,14 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
                     uint8_t red = pixel->getFillColor().r;
                     uint8_t alpha = pixel->getFillColor().a;
                     if(y == 8 || x % 6 == 5) {
-                        pixels[x][y]->setFillColor(Color(31, 31, 255, 255));
+                        pixel->setFillColor(Color(31, 31, 255, 255));
                         continue;
                     }
                     if(!system->firstReset) {
                         if(y < 8) {
-                            pixels[x][y]->setFillColor(Color::White);
+                            pixel->setFillColor(Color::White);
                         } else {
-                            pixels[x][y]->setFillColor(Color(0, 0, 224, 100));
+                            pixel->setFillColor(Color(0, 0, 224, 100));
                         }
                     } else {
                         char pixelState{system->lcd.pixelState(x, y)};
@@ -68,10 +68,15 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
                                 auto rg = red * .85;
                                 pixel->setFillColor(Color(rg, rg, 224, 225));
                             } else {
-                                pixels[x][y]->setFillColor(Color(0, 0, 224, 225));
+                                pixel->setFillColor(Color(0, 0, 224, 225));
                             }
                         } else {
-                            pixels[x][y]->setFillColor(Color::White);
+                            if(red != 255) {
+                                uint16_t rg = std::min((uint16_t )255, (uint16_t )((red + 10) * 1.5));
+                                pixel->setFillColor(Color(rg, rg, 255, 255));
+                            } else {
+                                pixels[x][y]->setFillColor(Color::White);
+                            }
                         }
                     }
                     window->draw(*pixels[x][y]);
@@ -91,7 +96,7 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
 
 int main() {
     System system{0x00, 0x3fff, 0x6000, 0x7fff,
-                  0x8000, 0xffff, 10};
+                  0x8000, 0xffff, 2};
     system.loadProgram("a.out");
     RenderWindow window(VideoMode(400.f, 88.f),
                         "W65C02 Emulation", Style::Close);
