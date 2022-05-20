@@ -19,7 +19,6 @@ set(SYSTEM_LIB_SOURCES
 if(win32)
     set(SFML_STATIC_LIBRARIES TRUE)
 endif()
-set(SFML_STATIC_LIBRARIES TRUE)
 set(SFML_DIR ${CMAKE_SOURCE_DIR}/SFML/lib/cmake/SFML)
 find_package(SFML COMPONENTS system window graphics audio network REQUIRED)
 

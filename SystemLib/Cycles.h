@@ -4,7 +4,8 @@
 #include <cpuid.h>
 #ifdef __linux__
 #include <x86intrin.h>
-#elifdef _WIN32
+#endif
+#ifdef _WIN32
 #include <intrin.h>
 #endif
 
