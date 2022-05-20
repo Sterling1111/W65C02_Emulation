@@ -1,7 +1,12 @@
 #ifndef _65C02_SYSTEM_EMULATION_CYCLES_H
 #define _65C02_SYSTEM_EMULATION_CYCLES_H
 #include "system_types.h"
+#include <cpuid.h>
+#ifdef __linux__
+#include <x86intrin.h>
+#elifdef _WIN32
 #include <intrin.h>
+#endif
 
 class Cycles {
 public:

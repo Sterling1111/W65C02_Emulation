@@ -8,10 +8,10 @@ Cycles::Cycles() {
 }
 
 dword Cycles::getTSCFrequency() {
-    int cpui[4];
-    __cpuid(cpui, 0x16);
-    return cpui[0] > 500 ? cpui[0] : 2400; //just a hack so the program will still run if
-                                            //cpui[0] does not contain TSC frequency. It only will
+    unsigned eax{}, ebx{}, ecx{}, edx{};
+    __get_cpuid(0x16, &eax, &ebx, &ecx, &edx);
+    return eax > 500 ? eax : 2400; //just a hack so the program will still run if
+                                            //eax does not contain TSC frequency. It only will
                                             //on newer intell processors....
 }
 
