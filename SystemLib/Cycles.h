@@ -1,9 +1,9 @@
 #ifndef _65C02_SYSTEM_EMULATION_CYCLES_H
 #define _65C02_SYSTEM_EMULATION_CYCLES_H
 #include "system_types.h"
-#include <cpuid.h>
 #ifdef __linux__
 #include <x86intrin.h>
+#include <cpuid.h>
 #endif
 #ifdef _WIN32
 #include <intrin.h>
