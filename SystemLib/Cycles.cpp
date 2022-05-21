@@ -9,16 +9,28 @@ Cycles::Cycles() {
 
 dword Cycles::getTSCFrequency() {
 #ifdef __linux__
-    unsigned eax{}, ebx{}, ecx{}, edx{};
-    __get_cpuid(0x16, &eax, &ebx, &ecx, &edx);
-    return eax > 500 ? eax : 2400; //just a hack so the program will still run if
-                                            //eax does not contain TSC frequency. It only will
-                                            //on newer intell processors....
+    std::ifstream inputFile("/proc/cpuinfo");
+    if(inputFile.is_open()) {
+        std::string line;
+        while (inputFile.good()) {
+            std::getline(inputFile, line);
+            if (line.find("cpu MHz") != std::string::npos) {
+                char const *digits = "0123456789";
+                std::size_t const n = line.find_first_of(digits);
+                std::size_t const m = line.find_first_not_of(digits, n);
+                int MHz = stoi(line.substr(n, m != std::string::npos ? m - n : m));
+                inputFile.close();
+                return MHz;
+            }
+        }
+    } return 2400;
 #endif
 #ifdef _WIN32
     int cpui[4];
     __cpuid(cpui, 0x16);
-    return cpui[0] > 500 ? cpui[0] : 2400;
+    return cpui[0] > 500 ? cpui[0] : 2400;  //just a hack so the program will still run if
+                                            //eax does not contain TSC frequency. It only will
+                                            //on newer intell processors....
 #endif
 exit(69420);
 }

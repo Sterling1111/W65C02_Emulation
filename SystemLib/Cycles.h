@@ -3,7 +3,7 @@
 #include "system_types.h"
 #ifdef __linux__
 #include <x86intrin.h>
-#include <cpuid.h>
+#include <fstream>
 #endif
 #ifdef _WIN32
 #include <intrin.h>
