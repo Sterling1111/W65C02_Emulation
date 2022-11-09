@@ -16,6 +16,7 @@ RS = %00100000
   .org $8000
 
 reset:
+    cli
     ldx #$ff
     txs
 
@@ -187,12 +188,13 @@ print_char:
 
 nmi:
 irq:
+    jsr delay
     rti
 
 delay:
     phy
     phx
-    ldy #$29
+    ldy #$1f
 delay2:
     ldx #$ff
 delay1:

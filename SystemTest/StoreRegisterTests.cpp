@@ -218,8 +218,8 @@ TEST_F(StoreRegisterTests, STAAbsoluteYCanStoreARegisterIntoMemory) {
 }
 
 TEST_F(StoreRegisterTests, STAAbsoluteYCanStoreARegisterIntoMemoryWhenPageBounderyCrossed) {
-    cpu.X = 0xFF;
-    ram[0xFFFC] = W65C02::INS_STA_ABSX;
+    cpu.Y = 0xFF;
+    ram[0xFFFC] = W65C02::INS_STA_ABSY;
     ram[0xFFFD] = 0x02;
     ram[0xFFFE] = 0x44;
     ram[0x4501] = cpu.A + 1;

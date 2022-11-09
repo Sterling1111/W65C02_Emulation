@@ -6,7 +6,7 @@ include(FetchContent)
 
 FetchContent_Declare(googlebenchmark
         GIT_REPOSITORY https://github.com/google/benchmark.git
-        GIT_TAG master) # need master for benchmark::benchmark
+        GIT_TAG main) # need master for benchmark::benchmark
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

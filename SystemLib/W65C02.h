@@ -42,6 +42,10 @@ public:
         ~CyclesIncrementer() { ++cycles; }
     };
 
+    typedef const std::function<byte(byte)>& operation;
+    typedef word (W65C02::* addressMode)(byte W65C02::*, operation);
+    typedef void (W65C02::* instruction)(addressMode);
+
     explicit W65C02(double Mhz = 1);
     void connectBus(Bus* bus);
     void initializeOpcodeMatrix();
@@ -67,83 +71,85 @@ public:
     byte pullByteFromStack();
     byte readByteFromStack();
 
-    word immediate(byte W65C02::* Register = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word immediate(byte W65C02::* Register = nullptr, operation op = nullptr);
 
-    word absoluteA(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word absoluteB(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word absoluteC(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word absoluteD(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word absoluteA(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word absoluteB(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word absoluteC(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word absoluteD(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word zeroPageA(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word zeroPageB(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word zeroPageC(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word zeroPageA(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word zeroPageB(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word zeroPageC(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word accumulator(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word accumulator(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word impliedA(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word impliedB(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word impliedC(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word impliedA(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word impliedB(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word impliedC(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word zeroPageIndirectIndexed(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word zeroPageIndirectIndexed(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word zeroPageIndexedIndirect(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word zeroPageIndexedIndirect(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word zeroPageXA(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word zeroPageXB(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word zeroPageXA(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word zeroPageXB(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word zeroPageY(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word zeroPageY(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word absoluteXA(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word absoluteXB(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word absoluteXA(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word absoluteXB(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word absoluteY(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word absoluteY(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word relativeA(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word relativeB(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word relativeA(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word relativeB(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word absoluteIndirect(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word absoluteIndirect(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word stackA(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word stackB(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word stackC(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word stackD(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word stackE(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
-    word stackF(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word stackA(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word stackB(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word stackC(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word stackD(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word stackE(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word stackF(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word absoluteIndexedIndirect(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word absoluteIndexedIndirect(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    word zeroPageIndirect(byte W65C02::* Register  = nullptr, const std::function<byte(byte)>& op = nullptr);
+    word zeroPageIndirect(byte W65C02::* Register  = nullptr, operation op = nullptr);
 
-    void ADC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void AND(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void ASL(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void BBR0(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void BBR1(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void BBR2(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void BBR3(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void BBR4(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void BBR5(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void BBR6(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void BBR7(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void BBS0(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void BBS1(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void BBS2(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void BBS3(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void BBS4(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void BBS5(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void BBS6(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void BBS7(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void BCC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void BCS(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void BEQ(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void BIT(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void BMI(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void BNE(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void BPL(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void BRA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void BRK(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void BVC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void BVS(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void CLC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void CLD(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void CLI(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void CLV(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void CMP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void CPX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void CPY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void DEC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void DEX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void DEY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void EOR(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void INC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void INX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void INY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void JMP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void JSR(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void LDA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void LDX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void LDY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void LSR(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void NOP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void ORA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void PHA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void PHP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void PHX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void PHY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void PLA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void PLP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void PLX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void PLY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void RMB0(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void RMB1(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void RMB2(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void RMB3(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void RMB4(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void RMB5(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void RMB6(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void RMB7(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void ROL(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void ROR(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void RTI(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void RTS(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void SBC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void SEC(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void SED(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void SEI(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void SMB0(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void SMB1(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void SMB2(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void SMB3(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void SMB4(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void SMB5(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void SMB6(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&)); void SMB7(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void STA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void STP(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void STX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void STY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void STZ(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void TAX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void TAY(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void TRB(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void TSB(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void TSX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void TXA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));	void TXS(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void TYA(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));  void WAI(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-    void XXX(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
+    void ADC(addressMode);  void AND(addressMode);	void ASL(addressMode);	void BBR0(addressMode);
+    void BBR1(addressMode); void BBR2(addressMode); void BBR3(addressMode); void BBR4(addressMode);
+    void BBR5(addressMode); void BBR6(addressMode); void BBR7(addressMode); void BBS0(addressMode);
+    void BBS1(addressMode); void BBS2(addressMode); void BBS3(addressMode); void BBS4(addressMode);
+    void BBS5(addressMode); void BBS6(addressMode); void BBS7(addressMode); void BCC(addressMode);
+    void BCS(addressMode);	void BEQ(addressMode);  void BIT(addressMode);  void BMI(addressMode);
+    void BNE(addressMode);	void BPL(addressMode);  void BRA(addressMode);  void BRK(addressMode);
+    void BVC(addressMode);  void BVS(addressMode);  void CLC(addressMode);	void CLD(addressMode);
+    void CLI(addressMode);  void CLV(addressMode);  void CMP(addressMode);	void CPX(addressMode);
+    void CPY(addressMode);  void DEC(addressMode);  void DEX(addressMode);	void DEY(addressMode);
+    void EOR(addressMode);  void INC(addressMode);  void INX(addressMode);	void INY(addressMode);
+    void JMP(addressMode);  void JSR(addressMode);  void LDA(addressMode);	void LDX(addressMode);
+    void LDY(addressMode);  void LSR(addressMode);  void NOP(addressMode);	void ORA(addressMode);
+    void PHA(addressMode);  void PHP(addressMode);  void PHX(addressMode);  void PHY(addressMode);
+    void PLA(addressMode);	void PLP(addressMode);  void PLX(addressMode);  void PLY(addressMode);
+    void RMB0(addressMode); void RMB1(addressMode); void RMB2(addressMode); void RMB3(addressMode);
+    void RMB4(addressMode); void RMB5(addressMode); void RMB6(addressMode); void RMB7(addressMode);
+    void ROL(addressMode);  void ROR(addressMode);  void RTI(addressMode);	void RTS(addressMode);
+    void SBC(addressMode);  void SEC(addressMode);  void SED(addressMode);	void SEI(addressMode);
+    void SMB0(addressMode); void SMB1(addressMode); void SMB2(addressMode); void SMB3(addressMode);
+    void SMB4(addressMode); void SMB5(addressMode); void SMB6(addressMode); void SMB7(addressMode);
+    void STA(addressMode);  void STP(addressMode);  void STX(addressMode);	void STY(addressMode);
+    void STZ(addressMode);  void TAX(addressMode);  void TAY(addressMode);  void TRB(addressMode);
+    void TSB(addressMode);  void TSX(addressMode);  void TXA(addressMode);	void TXS(addressMode);
+    void TYA(addressMode);  void WAI(addressMode);
+    void XXX(addressMode);
 
     struct Opcode {
-        void (W65C02::* instruction)(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
-        word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&);
+        //void (W65C02::* instruction)(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
+        //word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&);
+        instruction instruction;
+        addressMode addressMode;
     };
 
     std::vector<Opcode> opCodeMatrix;
