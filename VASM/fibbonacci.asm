@@ -78,6 +78,7 @@ fibbonacci:
   lda #%00000001 ; Clear display
   jsr lcd_instruction
   jsr short_delay
+  ;wai
   lda Fn_1
   sta Fn_2
   lda Fn_1 + 1

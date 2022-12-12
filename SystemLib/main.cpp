@@ -7,102 +7,98 @@ using namespace sf;
 
 Mutex mutex;
 
-void RenderThread(RenderWindow* window, System* system, bool& running) {
-    uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 55);     //30 Hz
+void RenderThread(RenderWindow& window, System& system, bool& running) {
+    uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 60);     //30 Hz
     RectangleShape lcdScreen;
     lcdScreen.setSize(Vector2f(380.f, 68.f));
     lcdScreen.setPosition(10.f, 10.f);
+    lcdScreen.setFillColor(Color(31, 31, 255, 255));
     lcdScreen.setFillColor(Color::Transparent);
 
-    RectangleShape* pixels[system->lcd.numPixelsX()][system->lcd.numPixelsY()];
+    RectangleShape pixels[system.lcd.numPixelsX()][system.lcd.numPixelsY()];
 
-    for (int y = 0; y < system->lcd.numPixelsY(); ++y) {
-        for (int x = 0; x < system->lcd.numPixelsX(); ++x) {
-            pixels[x][y] = new RectangleShape();
-            pixels[x][y]->setSize(Vector2f(3.f, 3.f));
-            pixels[x][y]->setPosition(Vector2f(lcdScreen.getPosition().x + x * 4, lcdScreen.getPosition().y + y * 4));
-            pixels[x][y]->setFillColor(Color::White);
+    for (int y = 0; y < system.lcd.numPixelsY(); ++y) {
+        for (int x = 0; x < system.lcd.numPixelsX(); ++x) {
+            pixels[x][y] = RectangleShape();
+            pixels[x][y].setSize(Vector2f(3.f, 3.f));
+            pixels[x][y].setPosition(Vector2f(lcdScreen.getPosition().x + x * 4, lcdScreen.getPosition().y + y * 4));
+            pixels[x][y].setFillColor(Color::White);
         }
     }
 
-    if(window->isOpen()) {
-        window->clear(Color(31, 31, 255, 255));
-        window->draw(lcdScreen);
-        window->display();
+    if(window.isOpen()) {
+        window.clear(Color(31, 31, 255, 255));
+        window.draw(lcdScreen);
+        window.display();
     }
 
     uint64_t renderStartTimePoint = __builtin_ia32_rdtsc();
     while (running)
     {
-        if(system->firstReset) {
+        if(system.firstReset) {
             mutex.lock();
-            system->cpu.execute(1);
+            system.cpu.execute(1);
             mutex.unlock();
         }
 
         if((__builtin_ia32_rdtsc() - renderStartTimePoint) > renderDuration) {
-            window->clear(Color(31, 31, 255, 255));
-            window->draw(lcdScreen);
+            window.clear(Color(31, 31, 255, 255));
+            window.draw(lcdScreen);
 
-            system->lcd.updatePixels();   // generates a snapshot of the pixels state
-            for (int y = 0; y < system->lcd.numPixelsY(); ++y) {
-                for (int x = 0; x < system->lcd.numPixelsX(); ++x) {
-                    RectangleShape* pixel = pixels[x][y];
-                    uint8_t red = pixel->getFillColor().r;
-                    uint8_t alpha = pixel->getFillColor().a;
+            system.lcd.updatePixels();   // generates a snapshot of the pixels state
+            for (int y = 0; y < system.lcd.numPixelsY(); ++y) {
+                for (int x = 0; x < system.lcd.numPixelsX(); ++x) {
+                    RectangleShape& pixel = pixels[x][y];
+                    uint8_t red = pixel.getFillColor().r;
+                    uint8_t alpha = pixel.getFillColor().a;
                     if(y == 8 || x % 6 == 5) {
-                        pixel->setFillColor(Color(31, 31, 255, 255));
+                        pixel.setFillColor(Color(31, 31, 255, 255));
                         continue;
                     }
-                    if(!system->firstReset) {
+                    if(!system.firstReset) {
                         if(y < 8) {
-                            pixel->setFillColor(Color::White);
+                            pixel.setFillColor(Color::White);
                         } else {
-                            pixel->setFillColor(Color(0, 0, 224, 100));
+                            pixel.setFillColor(Color(0, 0, 224, 100));
                         }
                     } else {
-                        char pixelState{system->lcd.pixelState(x, y)};
+                        char pixelState{system.lcd.pixelState(x, y)};
                         if(pixelState == -1 || pixelState == 0) {
                             if(red != 0) {
-                                auto rg = red * .88;
-                                pixel->setFillColor(Color(rg, rg, 224, 225));
+                                auto rg = red * .85;
+                                pixel.setFillColor(Color(rg, rg, 224, 225));
                             } else {
-                                pixel->setFillColor(Color(0, 0, 224, 225));
+                                pixel.setFillColor(Color(0, 0, 224, 225));
                             }
                         } else {
                             if(red != 255) {
-                                uint16_t rg = std::min((uint16_t )255, (uint16_t )((red + 20) * 2));
-                                pixel->setFillColor(Color(rg, rg, 255, 255));
+                                uint16_t rg = std::min((uint16_t )255, (uint16_t )((red + 10) * 1.5));
+                                pixel.setFillColor(Color(rg, rg, 255, 255));
                             } else {
-                                pixels[x][y]->setFillColor(Color::White);
+                                pixels[x][y].setFillColor(Color::White);
                             }
                         }
                     }
-                    window->draw(*pixels[x][y]);
+                    window.draw(pixels[x][y]);
                 }
             }
-            window->display();
+            window.display();
             renderStartTimePoint = __builtin_ia32_rdtsc();
         }
     }
-    for (int y = 0; y < system->lcd.numPixelsY(); ++y) {
-        for (int x = 0; x < system->lcd.numPixelsX(); ++x) {
-            delete pixels[x][y];
-        }
-    }
-    window->setActive(false);
+    window.setActive(false);
 }
 
 int main() {
     System system{0x00, 0x3fff, 0x6000, 0x7fff,
-                  0x8000, 0xffff, .5};
+                  0x8000, 0xffff, .199};
     system.loadProgram("a.out");
     RenderWindow window(VideoMode(400.f, 88.f),
                         "W65C02 Emulation", Style::Close);
     window.setKeyRepeatEnabled(false);
     bool running{true};
-    Thread renderThread([capture0 = &window, capture1 = &system, &running] {
-        return RenderThread(capture0, capture1, running);
+    Thread renderThread([&window, &system, &running] {
+        return RenderThread(window, system, running);
     });
     window.setActive(false);
     renderThread.launch();
