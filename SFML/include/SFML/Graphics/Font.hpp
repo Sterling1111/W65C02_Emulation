@@ -385,7 +385,7 @@ private:
 /// with several options such as character size, style, color,
 /// position, rotation, etc.
 /// This separation allows more flexibility and better performances:
-/// indeed a sf::Font is a heavy resource, and any operation on it
+/// indeed a sf::Font is a heavy resource, and any Operation on it
 /// is slow (often too slow for real-time applications). On the other
 /// side, a sf::Text is a lightweight object which can combine the
 /// glyphs data and metrics of a sf::Font to display any text on a

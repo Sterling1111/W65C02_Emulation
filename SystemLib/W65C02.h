@@ -25,7 +25,7 @@ public:
     byte PS_byte{};
     Bus* bus;
 private:
-    byte ZERO = 0x00; //This is meant to make the STZ instruction work
+    byte ZERO = 0x00; //This is meant to make the STZ Instruction work
 
 public:
     /*carry, zero, interrupt disable, decimal mode, break command,
@@ -42,9 +42,9 @@ public:
         ~CyclesIncrementer() { ++cycles; }
     };
 
-    typedef const std::function<byte(byte)>& operation;
-    typedef word (W65C02::* addressMode)(byte W65C02::*, operation);
-    typedef void (W65C02::* instruction)(addressMode);
+    typedef const std::function<byte(byte)>& Operation;
+    typedef word (W65C02::* AddressMode)(byte W65C02::*, Operation);
+    typedef void (W65C02::* Instruction)(AddressMode);
 
     explicit W65C02(double Mhz = 1);
     void connectBus(Bus* bus);
@@ -71,91 +71,99 @@ public:
     byte pullByteFromStack();
     byte readByteFromStack();
 
-    word immediate(byte W65C02::* Register = nullptr, operation op = nullptr);
+    word immediate(__attribute__((unused)) byte W65C02::* Register = nullptr, Operation op = nullptr);
 
-    word absoluteA(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word absoluteB(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word absoluteC(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word absoluteD(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word absoluteA(byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word absoluteB(__attribute__((unused)) byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word absoluteC(__attribute__((unused)) byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word absoluteD(__attribute__((unused)) byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word zeroPageA(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word zeroPageB(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word zeroPageC(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word zeroPageA(byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word zeroPageB(__attribute__((unused)) byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word zeroPageC(__attribute__((unused)) byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word accumulator(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word accumulator(byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word impliedA(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word impliedB(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word impliedC(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word impliedA(__attribute__((unused)) byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word impliedB(__attribute__((unused)) __attribute__((unused)) byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word impliedC(__attribute__((unused)) byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word zeroPageIndirectIndexed(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word zeroPageIndirectIndexed(byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word zeroPageIndexedIndirect(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word zeroPageIndexedIndirect(byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word zeroPageXA(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word zeroPageXB(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word zeroPageXA(byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word zeroPageXB(__attribute__((unused)) byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word zeroPageY(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word zeroPageY(byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word absoluteXA(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word absoluteXB(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word absoluteXA(byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word absoluteXB(__attribute__((unused)) byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word absoluteY(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word absoluteY(byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word relativeA(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word relativeB(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word relativeA(byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word relativeB(byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word absoluteIndirect(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word absoluteIndirect(byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word stackA(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word stackB(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word stackC(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word stackD(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word stackE(byte W65C02::* Register  = nullptr, operation op = nullptr);
-    word stackF(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word stackA(byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word stackB(byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word stackC(byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word stackD(byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word stackE(byte W65C02::* Register  = nullptr, Operation op = nullptr);
+    word stackF(byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word absoluteIndexedIndirect(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word absoluteIndexedIndirect(byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    word zeroPageIndirect(byte W65C02::* Register  = nullptr, operation op = nullptr);
+    word zeroPageIndirect(byte W65C02::* Register  = nullptr, Operation op = nullptr);
 
-    void ADC(addressMode);  void AND(addressMode);	void ASL(addressMode);	void BBR0(addressMode);
-    void BBR1(addressMode); void BBR2(addressMode); void BBR3(addressMode); void BBR4(addressMode);
-    void BBR5(addressMode); void BBR6(addressMode); void BBR7(addressMode); void BBS0(addressMode);
-    void BBS1(addressMode); void BBS2(addressMode); void BBS3(addressMode); void BBS4(addressMode);
-    void BBS5(addressMode); void BBS6(addressMode); void BBS7(addressMode); void BCC(addressMode);
-    void BCS(addressMode);	void BEQ(addressMode);  void BIT(addressMode);  void BMI(addressMode);
-    void BNE(addressMode);	void BPL(addressMode);  void BRA(addressMode);  void BRK(addressMode);
-    void BVC(addressMode);  void BVS(addressMode);  void CLC(addressMode);	void CLD(addressMode);
-    void CLI(addressMode);  void CLV(addressMode);  void CMP(addressMode);	void CPX(addressMode);
-    void CPY(addressMode);  void DEC(addressMode);  void DEX(addressMode);	void DEY(addressMode);
-    void EOR(addressMode);  void INC(addressMode);  void INX(addressMode);	void INY(addressMode);
-    void JMP(addressMode);  void JSR(addressMode);  void LDA(addressMode);	void LDX(addressMode);
-    void LDY(addressMode);  void LSR(addressMode);  void NOP(addressMode);	void ORA(addressMode);
-    void PHA(addressMode);  void PHP(addressMode);  void PHX(addressMode);  void PHY(addressMode);
-    void PLA(addressMode);	void PLP(addressMode);  void PLX(addressMode);  void PLY(addressMode);
-    void RMB0(addressMode); void RMB1(addressMode); void RMB2(addressMode); void RMB3(addressMode);
-    void RMB4(addressMode); void RMB5(addressMode); void RMB6(addressMode); void RMB7(addressMode);
-    void ROL(addressMode);  void ROR(addressMode);  void RTI(addressMode);	void RTS(addressMode);
-    void SBC(addressMode);  void SEC(addressMode);  void SED(addressMode);	void SEI(addressMode);
-    void SMB0(addressMode); void SMB1(addressMode); void SMB2(addressMode); void SMB3(addressMode);
-    void SMB4(addressMode); void SMB5(addressMode); void SMB6(addressMode); void SMB7(addressMode);
-    void STA(addressMode);  void STP(addressMode);  void STX(addressMode);	void STY(addressMode);
-    void STZ(addressMode);  void TAX(addressMode);  void TAY(addressMode);  void TRB(addressMode);
-    void TSB(addressMode);  void TSX(addressMode);  void TXA(addressMode);	void TXS(addressMode);
-    void TYA(addressMode);  void WAI(addressMode);
-    void XXX(addressMode);
+    void ADC(AddressMode);  void AND(AddressMode);	void ASL(AddressMode);	void BBR0(AddressMode);
+    void BBR1(AddressMode); void BBR2(AddressMode); void BBR3(AddressMode); void BBR4(AddressMode);
+    void BBR5(AddressMode); void BBR6(AddressMode); void BBR7(AddressMode); void BBS0(AddressMode);
+    void BBS1(AddressMode); void BBS2(AddressMode); void BBS3(AddressMode); void BBS4(AddressMode);
+    void BBS5(AddressMode); void BBS6(AddressMode); void BBS7(AddressMode); void BCC(AddressMode);
+    void BCS(AddressMode);	void BEQ(AddressMode);  void BIT(AddressMode);  void BMI(AddressMode);
+    void BNE(AddressMode);	void BPL(AddressMode);  void BRA(AddressMode);  void BRK(AddressMode);
+    void BVC(AddressMode);  void BVS(AddressMode);  void CLC(AddressMode);	void CLD(AddressMode);
+    void CLI(AddressMode);  void CLV(AddressMode);  void CMP(AddressMode);	void CPX(AddressMode);
+    void CPY(AddressMode);  void DEC(AddressMode);  void DEX(AddressMode);	void DEY(AddressMode);
+    void EOR(AddressMode);  void INC(AddressMode);  void INX(AddressMode);	void INY(AddressMode);
+    void JMP(AddressMode);  void JSR(AddressMode);  void LDA(AddressMode);	void LDX(AddressMode);
+    void LDY(AddressMode);  void LSR(AddressMode);  void NOP(AddressMode);	void ORA(AddressMode);
+    void PHA(AddressMode);  void PHP(AddressMode);  void PHX(AddressMode);  void PHY(AddressMode);
+    void PLA(AddressMode);	void PLP(AddressMode);  void PLX(AddressMode);  void PLY(AddressMode);
+    void RMB0(AddressMode); void RMB1(AddressMode); void RMB2(AddressMode); void RMB3(AddressMode);
+    void RMB4(AddressMode); void RMB5(AddressMode); void RMB6(AddressMode); void RMB7(AddressMode);
+    void ROL(AddressMode);  void ROR(AddressMode);  void RTI(AddressMode);	void RTS(AddressMode);
+    void SBC(AddressMode);  void SEC(AddressMode);  void SED(AddressMode);	void SEI(AddressMode);
+    void SMB0(AddressMode); void SMB1(AddressMode); void SMB2(AddressMode); void SMB3(AddressMode);
+    void SMB4(AddressMode); void SMB5(AddressMode); void SMB6(AddressMode); void SMB7(AddressMode);
+    void STA(AddressMode);  void STP(AddressMode);  void STX(AddressMode);	void STY(AddressMode);
+    void STZ(AddressMode);  void TAX(AddressMode);  void TAY(AddressMode);  void TRB(AddressMode);
+    void TSB(AddressMode);  void TSX(AddressMode);  void TXA(AddressMode);	void TXS(AddressMode);
+    void TYA(AddressMode);  void WAI(AddressMode);
+    void XXX(AddressMode);
 
     struct Opcode {
-        //void (W65C02::* instruction)(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
+        //void (W65C02::* Instruction)(word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&));
         //word (W65C02::* addrMode)(byte W65C02::*, const std::function<byte(byte)>&);
-        instruction instruction;
-        addressMode addressMode;
+        Instruction instruction;
+        AddressMode addressMode;
+    };
+
+    struct OpcodeString {
+        std::string instructionString;
+        std::string addressModeString;
     };
 
     std::vector<Opcode> opCodeMatrix;
-    Opcode opcode{};
+    std::vector<OpcodeString> opCodeStringMatrix;
 
-    //instruction opcodes
+    Opcode opcode{};
+    OpcodeString opcodeString{};
+
+    //Instruction opcodes
     static constexpr byte
     //Load/Store Operations
     INS_LDA_IM = 0xA9,  INS_LDA_ZP = 0xA5, INS_LDA_ZPX = 0xB5, INS_LDA_ABS = 0xAD, INS_LDA_ABSX = 0xBD, INS_LDA_ABSY = 0xB9, INS_LDA_XIND = 0xA1, INS_LDA_INDY = 0xB1, INS_LDA_ZPIND = 0xB2,

@@ -491,7 +491,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>UdpSocket</b></td></
 </div><div class="memdoc">
 
 <p>Test the validity of the packet, for reading. </p>
-<p>This operator allows to test the packet as a boolean variable, to check if a reading operation was successful.</p>
+<p>This operator allows to test the packet as a boolean variable, to check if a reading Operation was successful.</p>
 <p>A packet will be in an invalid state if it has no more data to read.</p>
 <p>This behavior is the same as standard C++ streams.</p>
 <p>Usage example: </p><div class="fragment"><div class="line"><span class="keywordtype">float</span> x;</div><div class="line">packet &gt;&gt; x;</div><div class="line"><span class="keywordflow">if</span> (packet)</div><div class="line">{</div><div class="line">   <span class="comment">// ok, x was extracted successfully</span></div><div class="line">}</div><div class="line"></div><div class="line"><span class="comment">// -- or --</span></div><div class="line"></div><div class="line"><span class="keywordtype">float</span> x;</div><div class="line"><span class="keywordflow">if</span> (packet &gt;&gt; x)</div><div class="line">{</div><div class="line">   <span class="comment">// ok, x was extracted successfully</span></div><div class="line">}</div></div><!-- fragment --><p>Don't focus on the return type, it's equivalent to bool but it disallows unwanted implicit conversions to integer or pointer types.</p>

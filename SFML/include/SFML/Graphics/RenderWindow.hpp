@@ -125,7 +125,7 @@ public:
     ///
     /// \param active True to activate, false to deactivate
     ///
-    /// \return True if operation was successful, false otherwise
+    /// \return True if Operation was successful, false otherwise
     ///
     ////////////////////////////////////////////////////////////
     bool setActive(bool active = true);
@@ -144,7 +144,7 @@ public:
     /// sf::Image screenshot = texture.copyToImage();
     /// \endcode
     ///
-    /// This is a slow operation, whose main purpose is to make
+    /// This is a slow Operation, whose main purpose is to make
     /// screenshots of the application. If you want to update an
     /// image with the contents of the window and then use it for
     /// drawing, you should rather use a sf::Texture and its

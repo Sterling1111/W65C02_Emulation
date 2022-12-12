@@ -151,7 +151,7 @@ lcd_instruction:
   sta PORTB
   lda #0         ; Clear RS/RW/E bits
   sta PORTA
-  lda #E         ; Set E bit to send instruction
+  lda #E         ; Set E bit to send Instruction
   sta PORTA
   lda #0         ; Clear RS/RW/E bits
   sta PORTA
@@ -162,7 +162,7 @@ print_char:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA

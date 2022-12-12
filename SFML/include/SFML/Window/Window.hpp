@@ -438,7 +438,7 @@ public:
     ///
     /// \param active True to activate, false to deactivate
     ///
-    /// \return True if operation was successful, false otherwise
+    /// \return True if Operation was successful, false otherwise
     ///
     ////////////////////////////////////////////////////////////
     bool setActive(bool active = true) const;

@@ -87,7 +87,7 @@ public:
     void TestLogicalOperationZeroPageIndirect(byte, byte, word, byte, byte, const std::function<byte(byte, byte)>&);
 };
 
-//for immediate mode bit instruction only sets the zero flag and does nothing else
+//for immediate mode bit Instruction only sets the zero flag and does nothing else
 void Logical_Im_Abs_ZP::TestLogicalOperationImmediate(byte opcode, byte aVal, byte memVal, const std::function<byte(byte, byte)> &op) {
     bool bit = opcode == 0x89;
     cpu.PS.set(W65C02::StatusFlags::Z, (bool)op(aVal, memVal));

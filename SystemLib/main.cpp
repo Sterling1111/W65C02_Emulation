@@ -2,10 +2,12 @@
 #include <SFML/Graphics.hpp>
 #include "System.h"
 #include <cstdint>
+#include <chrono>
 
 using namespace sf;
 
 Mutex mutex;
+bool next{};
 
 void RenderThread(RenderWindow& window, System& system, bool& running) {
     uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 60);     //30 Hz
