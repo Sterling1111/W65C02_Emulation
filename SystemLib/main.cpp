@@ -92,6 +92,7 @@ void RenderThread(RenderWindow& window, System& system, bool& running) {
 }
 
 int main() {
+    int dog = 3;
     System system{0x00, 0x3fff, 0x6000, 0x7fff,
                   0x8000, 0xffff, .199};
     system.loadProgram("a.out");
