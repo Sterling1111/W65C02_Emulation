@@ -58,7 +58,7 @@ check_bf:
     sta PORTA    
     lda #(RW | E)
     sta PORTA
-    lda PORTB       ;a = 1xxxxxxx if instruction execution 0xxxxxxx if done
+    lda PORTB       ;a = 1xxxxxxx if Instruction execution 0xxxxxxx if done
     and #%10000000  ;we and a so if a = 0 then done else not done
     bne check_bf    ;bne means brach if result not equal to 0
 

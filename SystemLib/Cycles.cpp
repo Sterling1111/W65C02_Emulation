@@ -36,6 +36,7 @@ exit(69420);
 }
 
 Cycles& Cycles::operator++() {
+    static int reps{3};
     ++cycles;
     //busy wait. There is no other way.
     while((__builtin_ia32_rdtsc() - startTimePoint) < cycleDuration);
@@ -56,8 +57,8 @@ void Cycles::reset() {
     cycles = 0;
     startTimePoint = __builtin_ia32_rdtsc();
 }
-sdword Cycles::getCycles() const {return cycles;}
+uint64_t Cycles::getCycles() const {return cycles;}
 
 void Cycles::setCycleDuration(double Mhz) {
-    cycleDuration = (TCSFrequency /*- 65 * Mhz*/) / Mhz;
+    cycleDuration = (TCSFrequency - 65 * Mhz) / Mhz;
 }

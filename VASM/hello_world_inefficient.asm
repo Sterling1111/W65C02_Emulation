@@ -20,7 +20,7 @@ reset:
   sta PORTB
   lda #0         ; Clear RS/RW/E bits
   sta PORTA
-  lda #E         ; Set E bit to send instruction
+  lda #E         ; Set E bit to send Instruction
   sta PORTA
   lda #0         ; Clear RS/RW/E bits
   sta PORTA
@@ -29,7 +29,7 @@ reset:
   sta PORTB
   lda #0         ; Clear RS/RW/E bits
   sta PORTA
-  lda #E         ; Set E bit to send instruction
+  lda #E         ; Set E bit to send Instruction
   sta PORTA
   lda #0         ; Clear RS/RW/E bits
   sta PORTA
@@ -38,7 +38,7 @@ reset:
   sta PORTB
   lda #0         ; Clear RS/RW/E bits
   sta PORTA
-  lda #E         ; Set E bit to send instruction
+  lda #E         ; Set E bit to send Instruction
   sta PORTA
   lda #0         ; Clear RS/RW/E bits
   sta PORTA
@@ -47,7 +47,7 @@ reset:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA
@@ -56,7 +56,7 @@ reset:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA
@@ -65,7 +65,7 @@ reset:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA
@@ -74,7 +74,7 @@ reset:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA
@@ -83,7 +83,7 @@ reset:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA
@@ -92,7 +92,7 @@ reset:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA
@@ -101,7 +101,7 @@ reset:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA
@@ -110,7 +110,7 @@ reset:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA
@@ -119,7 +119,7 @@ reset:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA
@@ -128,7 +128,7 @@ reset:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA
@@ -137,7 +137,7 @@ reset:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA
@@ -146,7 +146,7 @@ reset:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA
@@ -155,7 +155,7 @@ reset:
   sta PORTB
   lda #RS         ; Set RS; Clear RW/E bits
   sta PORTA
-  lda #(RS | E)   ; Set E bit to send instruction
+  lda #(RS | E)   ; Set E bit to send Instruction
   sta PORTA
   lda #RS         ; Clear E bits
   sta PORTA

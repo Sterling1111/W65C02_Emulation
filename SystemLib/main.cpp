@@ -2,13 +2,15 @@
 #include <SFML/Graphics.hpp>
 #include "System.h"
 #include <cstdint>
+#include <chrono>
 
 using namespace sf;
 
 Mutex mutex;
+bool next{};
 
 void RenderThread(RenderWindow* window, System* system, bool& running) {
-    uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 55);     //30 Hz
+    uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 74);     //30 Hz
     RectangleShape lcdScreen;
     lcdScreen.setSize(Vector2f(380.f, 68.f));
     lcdScreen.setPosition(10.f, 10.f);
@@ -32,7 +34,7 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
     }
 
     uint64_t renderStartTimePoint = __builtin_ia32_rdtsc();
-    while (running)
+    while (running) 
     {
         if(system->firstReset) {
             mutex.lock();
@@ -94,8 +96,9 @@ void RenderThread(RenderWindow* window, System* system, bool& running) {
 }
 
 int main() {
+    std::chrono::time_point<std::chrono::high_resolution_clock> startTimePoint;
     System system{0x00, 0x3fff, 0x6000, 0x7fff,
-                  0x8000, 0xffff, .5};
+                  0x8000, 0xffff, 1};
     system.loadProgram("a.out");
     RenderWindow window(VideoMode(400.f, 88.f),
                         "W65C02 Emulation", Style::Close);
@@ -122,9 +125,20 @@ int main() {
                     system.cpu.NMIB = true;
                 }
                 else if(event.key.code == Keyboard::R) {
+                    startTimePoint = std::chrono::high_resolution_clock::now();
                     mutex.lock();
                     system.firstReset = true;
                     system.cpu.reset(system.eeprom[0xFFFC - 0x8000] | system.eeprom[0xFFFD - 0x8000] << 8);
+                    mutex.unlock();
+                }
+                else if(event.key.code == Keyboard::C) {
+                    mutex.lock();
+                    auto cycles = system.cpu.cycles.getCycles();
+                    auto endTimePoint = std::chrono::high_resolution_clock::now();
+                    auto start = std::chrono::time_point_cast<std::chrono::seconds>(startTimePoint).time_since_epoch().count();
+                    auto end = std::chrono::time_point_cast<std::chrono::seconds>(endTimePoint).time_since_epoch().count();
+                    auto seconds = end - start;
+                    std::cout << (double)(cycles / seconds) / 1000000 << " Mhz" << std::endl;
                     mutex.unlock();
                 }
             }

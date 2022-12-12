@@ -225,7 +225,7 @@ public:
     ////////////////////////////////////////////////////////////
     /// \brief Copy the texture pixels to an image
     ///
-    /// This function performs a slow operation that downloads
+    /// This function performs a slow Operation that downloads
     /// the texture's pixels from the graphics card and copies
     /// them to a new image, potentially applying transformations
     /// to pixels if necessary (texture may be padded or flipped).
@@ -646,7 +646,7 @@ private:
 /// Being stored in the graphics card memory has some drawbacks.
 /// A texture cannot be manipulated as freely as a sf::Image,
 /// you need to prepare the pixels first and then upload them
-/// to the texture in a single operation (see Texture::update).
+/// to the texture in a single Operation (see Texture::update).
 ///
 /// sf::Texture makes it easy to convert from/to sf::Image, but
 /// keep in mind that these calls require transfers between

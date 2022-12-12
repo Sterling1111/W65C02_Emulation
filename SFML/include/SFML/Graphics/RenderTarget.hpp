@@ -293,7 +293,7 @@ public:
     ///
     /// \param active True to activate, false to deactivate
     ///
-    /// \return True if operation was successful, false otherwise
+    /// \return True if Operation was successful, false otherwise
     ///
     ////////////////////////////////////////////////////////////
     virtual bool setActive(bool active = true);

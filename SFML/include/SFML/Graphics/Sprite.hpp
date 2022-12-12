@@ -244,7 +244,7 @@ private:
 ///
 /// The separation of sf::Sprite and sf::Texture allows more flexibility
 /// and better performances: indeed a sf::Texture is a heavy resource,
-/// and any operation on it is slow (often too slow for real-time
+/// and any Operation on it is slow (often too slow for real-time
 /// applications). On the other side, a sf::Sprite is a lightweight
 /// object which can use the pixel data of a sf::Texture and draw
 /// it with its own transformation/color/blending attributes.

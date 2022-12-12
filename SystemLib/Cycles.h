@@ -17,11 +17,11 @@ public:
     Cycles& operator+=(sdword);
     bool operator> (sdword) const;
     void reset();
-    sdword getCycles() const;
+    uint64_t getCycles() const;
     void setCycleDuration(double Mhz);
 
 private:
-    sdword cycles{};
+    uint64_t cycles{};
     uint64_t startTimePoint{};
     uint64_t cycleDuration{};
     uint64_t TCSFrequency{};
