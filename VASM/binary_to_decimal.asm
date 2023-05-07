@@ -35,15 +35,18 @@ reset:
   lda #%00000001 ; Clear display
   jsr lcd_instruction
 
-
-  
   lda #$0
   sta message
 
   ; Initialize value to be the number to convert
-  lda number
+  ;lda number
+  ;sta value
+  ;lda number + 1
+  ;sta value + 1
+
+  lda #200
   sta value
-  lda number + 1
+  lda #$00
   sta value + 1
 
 divide:

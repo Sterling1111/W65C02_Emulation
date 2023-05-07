@@ -3,6 +3,9 @@
 #include "System.h"
 #include <cstdint>
 #include <chrono>
+#ifdef __linux__
+#include <X11/Xlib.h>
+#endif
 
 using namespace sf;
 
@@ -10,7 +13,7 @@ Mutex mutex;
 bool next{};
 
 void RenderThread(RenderWindow& window, System& system, bool& running) {
-    uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 60);     //30 Hz
+    uint64_t renderDuration = ((Cycles::getTSCFrequency() * 1000000) / 75);     //30 Hz
     RectangleShape lcdScreen;
     lcdScreen.setSize(Vector2f(380.f, 68.f));
     lcdScreen.setPosition(10.f, 10.f);
@@ -34,16 +37,21 @@ void RenderThread(RenderWindow& window, System& system, bool& running) {
         window.display();
     }
 
+    auto val = __rdtsc();
+    int32_t eax, ebx, ecx, edx;
+
     uint64_t renderStartTimePoint = __builtin_ia32_rdtsc();
     while (running)
     {
-        if(system.firstReset) {
-            mutex.lock();
-            system.cpu.execute(1);
-            mutex.unlock();
-        }
-
+        sf::Time time = sf::milliseconds(14);
+        sf::sleep(time);
         if((__builtin_ia32_rdtsc() - renderStartTimePoint) > renderDuration) {
+            if(system.firstReset) {
+                mutex.lock();
+                system.cpu.execute(10);
+                mutex.unlock();
+            }
+
             window.clear(Color(31, 31, 255, 255));
             window.draw(lcdScreen);
 
@@ -92,8 +100,11 @@ void RenderThread(RenderWindow& window, System& system, bool& running) {
 }
 
 int main() {
+#ifdef __linux__
+    XInitThreads();
+#endif
     System system{0x00, 0x3fff, 0x6000, 0x7fff,
-                  0x8000, 0xffff, .199};
+                  0x8000, 0xffff, 1};
     system.loadProgram("a.out");
     RenderWindow window(VideoMode(400.f, 88.f),
                         "W65C02 Emulation", Style::Close);

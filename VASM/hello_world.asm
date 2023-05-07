@@ -45,9 +45,11 @@ print:
     jmp print
 
 STOP:
+    ldx #69
+    ldy #69
     stp
 
-message: .asciiz "{" ;this will put a 0 at the end of the string
+message: .asciiz "Hello, World!" ;this will put a 0 at the end of the string
 
 lcd_wait:
     pha             ;push the a register onto the stack 

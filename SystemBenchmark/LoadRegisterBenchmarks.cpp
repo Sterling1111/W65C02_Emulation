@@ -38,7 +38,7 @@ byte _6502LoadRegisterBenchmarks::BenchmarkLoadRegisterZeroPage(byte opcode, byt
 
 BENCHMARK_DEFINE_F(_6502LoadRegisterBenchmarks, LDAImmediate)(benchmark::State& st) {
     for(auto _ : st)
-        (BenchmarkLoadRegisterImmediate(W65C02::INS_LDA_IM, &W65C02::A));
+        benchmark::DoNotOptimize(BenchmarkLoadRegisterImmediate(W65C02::INS_LDA_IM, &W65C02::A));
 }
 
 BENCHMARK_DEFINE_F(_6502LoadRegisterBenchmarks, LDXImmediate)(benchmark::State& st) {

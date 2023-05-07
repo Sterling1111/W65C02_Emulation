@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Cycles.h"
 
 Cycles::Cycles() {
@@ -26,9 +27,10 @@ dword Cycles::getTSCFrequency() {
     } return 2400;
 #endif
 #ifdef _WIN32
+    //find the TSC frequency of the CPU for windows
     int cpui[4];
     __cpuid(cpui, 0x16);
-    return cpui[0] > 500 ? cpui[0] : 2400;  //just a hack so the program will still run if
+    return cpui[0] > 500 ? cpui[0] : 2800;  //just a hack so the program will still run if
                                             //eax does not contain TSC frequency. It only will
                                             //on newer intell processors....
 #endif
@@ -39,8 +41,8 @@ Cycles& Cycles::operator++() {
     static int reps{3};
     ++cycles;
     //busy wait. There is no other way.
-    while((__builtin_ia32_rdtsc() - startTimePoint) < cycleDuration);
-    startTimePoint = __builtin_ia32_rdtsc();
+//    while((__builtin_ia32_rdtsc() - startTimePoint) < cycleDuration);
+  //  startTimePoint = __builtin_ia32_rdtsc();
     return *this;
 }
 

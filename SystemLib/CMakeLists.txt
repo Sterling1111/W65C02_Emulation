@@ -28,6 +28,11 @@ include_directories(${CMAKE_SOURCE_DIR}/SFML/include)
 add_library( SystemLib ${SYSTEM_LIB_SOURCES})
 
 add_executable(main ${SYSTEM_LIB_SOURCES})
-target_link_libraries(main sfml-system sfml-window sfml-graphics sfml-audio)
+if(WIN32)
+    target_link_libraries(main sfml-system sfml-window sfml-graphics sfml-audio -mwindows -static -static-libstdc++ -static-libgcc)
+else()
+    target_link_libraries(main sfml-system sfml-window sfml-graphics sfml-audio -mwindows -static -static-libstdc++ -static-libgcc -lX11)
+endif()
+
 
 target_include_directories ( SystemLib PUBLIC ${PROJECT_SOURCE_DIR})

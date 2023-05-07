@@ -491,6 +491,7 @@ void W65C02::execute(uint64_t numInstructionsToExecute) {
         byte opcodeNum = fetchByte();
         opcode = opCodeMatrix[opcodeNum];
         opcodeString = opCodeStringMatrix[opcodeNum];
+
         (this->*(opcode.instruction))(opcode.addressMode);
         /*std::cout << opcodeString.instructionString << "\t" << std::left << std::setw(25) << opcodeString.addressModeString <<
                   "PC: " << std::setw(10) << PC << "A: " << std::setw(10) << (int)A << "X: "  << std::setw(10) << (int)X << "Y: " << std::setw(10) << (int)Y <<
