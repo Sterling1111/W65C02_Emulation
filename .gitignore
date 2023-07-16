@@ -1,3 +1,18 @@
 # Project exclude paths
 /cmake-build-debug-wsl/CMakeFiles/
 /cmake-build-release-wsl/CMakeFiles/
+
+# Make Artifacts
+**/_deps
+**/CMakeFiles
+**/Makefile
+**/CTestTestfile.cmake
+**/cmake_install.cmake
+**/CMakeCache.txt
+
+# Build Artifacts
+**/lib
+SystemBenchmark/SystemBenchmark
+SystemLib/libSystemLib.a
+SystemLib/main
+SystemTest/SystemTest
