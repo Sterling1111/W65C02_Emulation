@@ -115,7 +115,7 @@ int main() {
     });
     window.setActive(false);
     renderThread.launch();
-    Time delayTime = milliseconds(1);
+    sf::Time delayTime = milliseconds(1);
 
     while(running) {
         sleep(delayTime);

@@ -31,7 +31,7 @@ add_executable(main ${SYSTEM_LIB_SOURCES})
 if(WIN32)
     target_link_libraries(main sfml-system sfml-window sfml-graphics sfml-audio -mwindows -static -static-libstdc++ -static-libgcc)
 else()
-    target_link_libraries(main sfml-system sfml-window sfml-graphics sfml-audio -mwindows -static -static-libstdc++ -static-libgcc -lX11)
+    target_link_libraries(main sfml-system sfml-window sfml-graphics sfml-audio -static-libstdc++ -static-libgcc -lX11)
 endif()
 
 
