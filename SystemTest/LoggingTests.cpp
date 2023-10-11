@@ -15,26 +15,79 @@ public:
     static bool compareFiles(const std::string& p1, const std::string& p2);
     bool executeProgramAndCompareFiles(const std::string& emulationObjFile, uint64_t instructionsToExecute,
                                        const std::string& emulationOutFile, const std::string& cpuOutFile);
+
+    static void convertFileToNativeLineEndings(const std::string &inputFileName, const std::string &outputFileName);
 };
 
+void LoggingTests::convertFileToNativeLineEndings(const std::string& inputFileName, const std::string& outputFileName) {
+    std::ifstream inputFile(inputFileName, std::ios::in | std::ios::binary);
+    if (!inputFile) {
+        return;
+    }
+
+    std::ofstream outputFile(outputFileName, std::ios::out | std::ios::binary);
+    if (!outputFile) {
+        return;
+    }
+
+    char prevChar = '\0';
+    char currentChar;
+    while (inputFile.get(currentChar)) {
+        if (currentChar == '\r') {
+            // Handle CR character (possibly part of CRLF)
+            outputFile.put(currentChar);
+            if (inputFile.peek() == '\n') {
+                // If next character is LF, skip it
+                inputFile.get(currentChar);
+                outputFile.put(currentChar);
+            }
+        } else if (currentChar == '\n') {
+            // Handle LF character
+            outputFile.put('\n'); // Convert LF to native line ending
+        } else {
+            // Other characters
+            outputFile.put(currentChar);
+        }
+        prevChar = currentChar;
+    }
+
+    inputFile.close();
+    outputFile.close();
+}
+
 bool LoggingTests::compareFiles(const std::string &p1, const std::string &p2) {
-    std::ifstream f1(p1, std::ifstream::binary|std::ifstream::ate);
-    std::ifstream f2(p2, std::ifstream::binary|std::ifstream::ate);
+    std::string p1_native = p1 + "_native";
+    std::string p2_native = p2 + "_native";
+
+    convertFileToNativeLineEndings(p1, p1_native);
+    convertFileToNativeLineEndings(p2, p2_native);
+
+    std::ifstream f1(p1_native, std::ifstream::binary | std::ifstream::ate);
+    std::ifstream f2(p2_native, std::ifstream::binary | std::ifstream::ate);
 
     if (f1.fail() || f2.fail()) {
-        return false; //file problem
+        return false; // File problem
     }
 
     if (f1.tellg() != f2.tellg()) {
-        return false; //size mismatch
+        return false; // Size mismatch
     }
 
-    //seek back to beginning and use std::equal to compare contents
+    // Seek back to the beginning and use std::equal to compare contents
     f1.seekg(0, std::ifstream::beg);
     f2.seekg(0, std::ifstream::beg);
-    return std::equal(std::istreambuf_iterator<char>(f1.rdbuf()),
-                      std::istreambuf_iterator<char>(),
-                      std::istreambuf_iterator<char>(f2.rdbuf()));
+
+    bool filesEqual = std::equal(
+            std::istreambuf_iterator<char>(f1.rdbuf()),
+            std::istreambuf_iterator<char>(),
+            std::istreambuf_iterator<char>(f2.rdbuf())
+    );
+
+    // Clean up temporary files
+    std::remove(p1_native.c_str());
+    std::remove(p2_native.c_str());
+
+    return filesEqual;
 }
 
 bool LoggingTests::executeProgramAndCompareFiles(const std::string &emulationObjFile, uint64_t instructionsToExecute,

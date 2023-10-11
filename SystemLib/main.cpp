@@ -119,7 +119,7 @@ int main() {
 
     while(running) {
         sleep(delayTime);
-        Event event;
+        Event event{};
         while (window.pollEvent(event))
         {
             if (event.type == Event::Closed)
