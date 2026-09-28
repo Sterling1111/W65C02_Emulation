@@ -13,6 +13,8 @@ public:
         EEPROM& eeprom, sdword romMin, sdword romMax);
     void write(byte data, word address);
     byte read(word address);
+    void tick();
+    bool irqAsserted() const;
     bool openProgramOutFile(const std::string& progOutFile);
 
 public:

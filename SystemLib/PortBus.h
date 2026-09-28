@@ -11,7 +11,7 @@ public:
     //Lights& lights;
     LCD& lcd;
     void portAWrite(byte data);
-    void portBWrite(byte data);
+    void portBWrite(byte data, byte outputMask = 0xff);
     //byte portARead() const;
     byte portBRead() const;
 };

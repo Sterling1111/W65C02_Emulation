@@ -16,3 +16,6 @@ SystemBenchmark/SystemBenchmark
 SystemLib/libSystemLib.a
 SystemLib/main
 SystemTest/SystemTest
+
+# Out-of-source builds and local dependencies
+/build/

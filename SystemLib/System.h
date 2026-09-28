@@ -3,10 +3,13 @@
 
 #include <limits>
 #include "W65C02.h"
+#include "PortBus.h"
 
 class System {
 public:
     System(sdword ramMin, sdword ramMax, sdword regMin, sdword regMax, sdword romMin, sdword romMax, double Mhz =1);
+    ~System();
+    void reset(bool run = true); // false leaves the CPU paused at the reset vector
     void executeProgram(const std::string& programObjFile, uint64_t instructionsToExecute = std::numeric_limits<uint64_t>::max(), bool logging = false, const std::string& outFile = "");
     void loadProgram(const std::string& programObjFile);
 

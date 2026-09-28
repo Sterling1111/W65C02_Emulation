@@ -23,10 +23,10 @@ reset:
     lda #0          ;pre clear RS/RW/E bits
     sta PORTA
 
-    lda #%00000001  ;clear the entire display
+    lda #%00111000  ;Set 8-bit mode, 2-line display, 5x8 font first
     jsr lcd_instruction
 
-    lda #%00111000  ;Set 8-bit mode, 2-line display, 5x8 font
+    lda #%00000001  ;Clear the entire display
     jsr lcd_instruction
 
     lda #%00001111  ;display on, cursor on, blink on

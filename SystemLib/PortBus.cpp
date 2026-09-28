@@ -7,8 +7,8 @@ void PortBus::portAWrite(byte data) {
     lcd.portAWrite(data);
 }
 
-void PortBus::portBWrite(byte data) {
-    lcd.portBWrite(data);
+void PortBus::portBWrite(byte data, byte outputMask) {
+    lcd.portBWrite(data, outputMask);
 }
 
 byte PortBus::portBRead() const {

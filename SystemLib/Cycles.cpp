@@ -1,12 +1,9 @@
 #include <iostream>
 #include "Cycles.h"
+#include <cmath>
+#include <stdexcept>
 
-Cycles::Cycles() {
-    cycles = 0;
-    startTimePoint = 0;
-    cycleDuration = 0;
-    TCSFrequency = getTSCFrequency();
-}
+Cycles::Cycles() = default;
 
 dword Cycles::getTSCFrequency() {
 #ifdef __linux__
@@ -38,11 +35,8 @@ exit(69420);
 }
 
 Cycles& Cycles::operator++() {
-    static int reps{3};
     ++cycles;
-    //busy wait. There is no other way.
-//    while((__builtin_ia32_rdtsc() - startTimePoint) < cycleDuration);
-  //  startTimePoint = __builtin_ia32_rdtsc();
+    if (onTick) onTick();
     return *this;
 }
 
@@ -57,10 +51,11 @@ bool Cycles::operator> (sdword other) const {return cycles > other;}
 
 void Cycles::reset() {
     cycles = 0;
-    startTimePoint = __builtin_ia32_rdtsc();
 }
 uint64_t Cycles::getCycles() const {return cycles;}
 
 void Cycles::setCycleDuration(double Mhz) {
-    cycleDuration = (TCSFrequency - 65 * Mhz) / Mhz;
+    if (!std::isfinite(Mhz) || Mhz <= 0 || Mhz > 1e6)
+        throw std::invalid_argument("CPU frequency must be in (0, 1e6] MHz");
+    frequencyHz = Mhz * 1000000;
 }

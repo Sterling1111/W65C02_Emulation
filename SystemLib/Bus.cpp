@@ -46,3 +46,11 @@ bool Bus::openProgramOutFile(const std::string& progOutFile) {
         return false;
     } return true;
 }
+
+void Bus::tick() {
+    if (regMin >= 0 && regMax >= regMin) registers.tick();
+}
+
+bool Bus::irqAsserted() const {
+    return regMin >= 0 && regMax >= regMin && registers.irqAsserted();
+}

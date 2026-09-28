@@ -1,6 +1,8 @@
 #ifndef _65C02_SYSTEM_EMULATION_CYCLES_H
 #define _65C02_SYSTEM_EMULATION_CYCLES_H
 #include "system_types.h"
+#include <functional>
+#include <utility>
 #ifdef __linux__
 #include <x86intrin.h>
 #include <fstream>
@@ -19,12 +21,13 @@ public:
     void reset();
     uint64_t getCycles() const;
     void setCycleDuration(double Mhz);
+    void setTickCallback(std::function<void()> callback) { onTick = std::move(callback); }
+    double getFrequencyHz() const { return frequencyHz; }
 
 private:
+    std::function<void()> onTick;
     uint64_t cycles{};
-    uint64_t startTimePoint{};
-    uint64_t cycleDuration{};
-    uint64_t TCSFrequency{};
+    double frequencyHz{1000000};
 };
 
 

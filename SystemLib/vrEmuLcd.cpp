@@ -13,7 +13,7 @@
 #include <cstdlib>
 #include <cstddef>
 #include <memory.h>
-#include <ctime>
+#include <algorithm>
 
 
 /*
@@ -24,61 +24,31 @@
  * automatically skips to the correct line and
  * rolls back to the start
  */
-static void increment(VrEmuLcd* lcd)
+static void moveDdram(VrEmuLcd* lcd, bool forward)
 {
-    ++lcd->ddPtr;
-
-    // find pointer offset from start
-    ptrdiff_t offset = lcd->ddPtr - lcd->ddRam;
-
-    if (lcd->gdPtr)// && !lcd->graphicsMode)
-        {
-        if (offset >= 0x40) lcd->ddPtr = lcd->ddRam;
+    int address = int(lcd->ddPtr - lcd->ddRam);
+    if (lcd->gdRam) {
+        address = (address + (forward ? 1 : 63)) % 64;
+    } else if (lcd->functionFlags & LCD_CMD_FUNCTION_LCD_2LINE) {
+        if (forward) {
+            address = address == 0x27 ? 0x40 : address == 0x67 ? 0 : (address + 1) & 0x7f;
+        } else {
+            address = address == 0 ? 0x67 : address == 0x40 ? 0x27 : (address - 1) & 0x7f;
         }
-    else if (lcd->rows > 1)
-    {
-        if (offset == 0x28) lcd->ddPtr = lcd->ddRam + 0x40;
-        else if (offset == 0x68 || offset >= DDRAM_SIZE) lcd->ddPtr = lcd->ddRam;
+    } else {
+        address = forward ? (address == 0x4f ? 0 : (address + 1) & 0x7f)
+                          : (address == 0 ? 0x4f : (address - 1) & 0x7f);
     }
-    else if (offset >= DDRAM_VISIBLE_SIZE)
-    {
-        lcd->ddPtr = lcd->ddRam;
-    }
+    lcd->ddPtr = lcd->ddRam + address;
 }
 
-/*
- * Function:  decrement
- * --------------------
- * decrements the ddRam pointer of a VrEmuLcd
- *
- * automatically skips to the correct line and
- * rolls back to the end
- */
-static void decrement(VrEmuLcd* lcd)
-{
-    --lcd->ddPtr;
+static void increment(VrEmuLcd* lcd) { moveDdram(lcd, true); }
+static void decrement(VrEmuLcd* lcd) { moveDdram(lcd, false); }
 
-    // find pointer offset from start
-    ptrdiff_t offset = lcd->ddPtr - lcd->ddRam;
-
-    if (lcd->gdPtr)
-    {
-        if (offset == -1) lcd->ddPtr = lcd->ddRam + 0x3f;
-    }
-    else if (lcd->rows > 1)
-    {
-        if (offset == -1) lcd->ddPtr = lcd->ddRam + 0x67;
-        else if (offset == 0x39) lcd->ddPtr = lcd->ddRam  + 0x27;
-    }
-
-    if (offset == -1)
-    {
-        lcd->ddPtr += DDRAM_VISIBLE_SIZE;
-    }
-    else if (offset >= DDRAM_SIZE)
-    {
-        lcd->ddPtr = lcd->ddRam;
-    }
+static void shiftDisplay(VrEmuLcd* lcd, int amount) {
+    const int width = lcd->gdRam ? lcd->dataWidthCols :
+        (lcd->functionFlags & LCD_CMD_FUNCTION_LCD_2LINE ? 40 : 80);
+    lcd->scrollOffset = (lcd->scrollOffset + amount + width) % width;
 }
 
 /*
@@ -87,27 +57,14 @@ static void decrement(VrEmuLcd* lcd)
  * shift the cursor or display as required
  * by the current entry mode flags
  */
-static void doShift(VrEmuLcd* lcd)
+static void doShift(VrEmuLcd* lcd, bool writing)
 {
     // if we're looking at cgram, shift the cg pointer
     if (lcd->cgPtr)
     {
-        if (lcd->entryModeFlags & LCD_CMD_ENTRY_MODE_INCREMENT)
-        {
-            ++lcd->cgPtr;
-            if (lcd->cgPtr >= (uint8_t*)lcd->cgRam + sizeof(lcd->cgRam))
-            {
-                lcd->cgPtr = (uint8_t*)lcd->cgRam;
-            }
-        }
-        else
-        {
-            --lcd->cgPtr;
-            if (lcd->cgPtr < (uint8_t*)lcd->cgRam)
-            {
-                lcd->cgPtr = (uint8_t*)lcd->cgRam + sizeof(lcd->cgRam) - 1;
-            }
-        }
+        const int address = int(lcd->cgPtr - reinterpret_cast<uint8_t*>(lcd->cgRam));
+        const int delta = lcd->entryModeFlags & LCD_CMD_ENTRY_MODE_INCREMENT ? 1 : 63;
+        lcd->cgPtr = reinterpret_cast<uint8_t*>(lcd->cgRam) + (address + delta) % 64;
     }
     // otherwise, shift the ddram pointer or scroll offset
     else if (lcd->graphicsMode)
@@ -120,15 +77,15 @@ static void doShift(VrEmuLcd* lcd)
     }
     else
     {
-        if (lcd->entryModeFlags & LCD_CMD_ENTRY_MODE_SHIFT)
+        if (writing && (lcd->entryModeFlags & LCD_CMD_ENTRY_MODE_SHIFT))
         {
             if (lcd->entryModeFlags & LCD_CMD_ENTRY_MODE_INCREMENT)
             {
-                ++lcd->scrollOffset;
+                shiftDisplay(lcd, 1);
             }
             else
             {
-                --lcd->scrollOffset;
+                shiftDisplay(lcd, -1);
             }
         }
 
@@ -183,6 +140,9 @@ VrEmuLcd* vrEmuLcdNew(int cols, int rows, vrEmuLcdCharacterRom rom)
         lcd->ddPtr = lcd->ddRam;
         lcd->entryModeFlags = LCD_CMD_ENTRY_MODE_INCREMENT;
         lcd->displayFlags = 0x00;
+        lcd->functionFlags = LCD_CMD_FUNCTION_8BIT;
+        lcd->elapsedNanoseconds = 0;
+        lcd->blinkHalfPeriodNanoseconds = 379259259; // 102400 / 270 kHz seconds.
         lcd->scrollOffset = 0x00;
         lcd->cgPtr = NULL;
 
@@ -235,13 +195,17 @@ VrEmuLcd* vrEmuLcdNew(int cols, int rows, vrEmuLcdCharacterRom rom)
             memset(lcd->gdRam, 0, GDRAM_SIZE);
         }
 
-        memset(lcd->cgRam, DEFAULT_CGRAM_BYTE, sizeof(lcd->cgRam));
+        memset(lcd->cgRam, 0, sizeof(lcd->cgRam));
 
         if (lcd->pixels != NULL)
         {
             memset(lcd->pixels, -1, lcd->numPixels);
         }
 
+        if (!lcd->ddRam || !lcd->pixels || (graphicsLCD && !lcd->gdRam)) {
+            vrEmuLcdDestroy(lcd);
+            return nullptr;
+        }
         vrEmuLcdUpdatePixels(lcd);
     }
     return lcd;
@@ -309,6 +273,7 @@ void vrEmuLcdSendCommand(VrEmuLcd* lcd, uint8_t command)
     }
     else if (command & LCD_CMD_FUNCTION)
     {
+        lcd->functionFlags = command & 0x1c;
         if (lcd->gdRam)
         {
             lcd->extendedMode = (command & LCD_CMD_FUNCTION_EXT_MODE) ? 1 : 0;
@@ -325,11 +290,11 @@ void vrEmuLcdSendCommand(VrEmuLcd* lcd, uint8_t command)
         {
             if (command & LCD_CMD_SHIFT_RIGHT)
             {
-                --lcd->scrollOffset;
+                shiftDisplay(lcd, -1);
             }
             else
             {
-                ++lcd->scrollOffset;
+                shiftDisplay(lcd, 1);
             }
         }
         else
@@ -355,6 +320,7 @@ void vrEmuLcdSendCommand(VrEmuLcd* lcd, uint8_t command)
     else if (command & LCD_CMD_HOME)
     {
         lcd->ddPtr = lcd->ddRam;
+        lcd->cgPtr = nullptr;
         lcd->scrollOffset = 0;
     }
     else if (command & LCD_CMD_CLEAR)
@@ -364,6 +330,8 @@ void vrEmuLcdSendCommand(VrEmuLcd* lcd, uint8_t command)
             memset(lcd->ddRam, ' ', DDRAM_SIZE);
         }
         lcd->ddPtr = lcd->ddRam;
+        lcd->cgPtr = nullptr;
+        lcd->entryModeFlags |= LCD_CMD_ENTRY_MODE_INCREMENT;
         lcd->scrollOffset = 0;
     }
 }
@@ -379,24 +347,7 @@ void vrEmuLcdWriteByte(VrEmuLcd* lcd, uint8_t data)
 {
     if (lcd->cgPtr)
     {
-        // find row offset
-        int row = (lcd->cgPtr - (uint8_t*)lcd->cgRam) % CHAR_HEIGHT_PX;
-
-        // find starting uint8_t for the current character
-        uint8_t* startAddr = lcd->cgPtr - row;
-
-        for (int i = 0; i < CHAR_WIDTH_PX; ++i)
-        {
-            uint8_t bit = data & ((0x01 << (CHAR_WIDTH_PX - 1)) >> i);
-            if (bit)
-            {
-                *(startAddr + i) |= (0x80 >> row);
-            }
-            else
-            {
-                *(startAddr + i) &= ~(0x80 >> row);
-            }
-        }
+        *lcd->cgPtr = data;
     }
     else if (lcd->graphicsMode)
     {
@@ -406,7 +357,7 @@ void vrEmuLcdWriteByte(VrEmuLcd* lcd, uint8_t data)
     {
         *lcd->ddPtr = data;
     }
-    doShift(lcd);
+    doShift(lcd, true);
 }
 
 
@@ -421,7 +372,7 @@ uint8_t vrEmuLcdReadByte(VrEmuLcd* lcd)
 {
     uint8_t data = vrEmuLcdReadByteNoInc(lcd);
 
-    doShift(lcd);
+    doShift(lcd, false);
 
     return data;
 }
@@ -437,30 +388,9 @@ uint8_t vrEmuLcdReadByte(VrEmuLcd* lcd)
  */
 uint8_t vrEmuLcdReadByteNoInc(VrEmuLcd* lcd)
 {
-    uint8_t data = 0;
-
-    if (lcd->cgPtr)
-    {
-        // find row offset
-        int row = (lcd->cgPtr - (uint8_t*)lcd->cgRam) % 8;
-
-        // find starting uint8_t for the current character
-        uint8_t* startAddr = lcd->cgPtr - row;
-
-        for (int i = 0; i < CHAR_WIDTH_PX; ++i)
-        {
-            if (*(startAddr + i) & (0x80 >> row))
-            {
-                data |= ((0x01 << (CHAR_WIDTH_PX - 1)) >> i);
-            }
-        }
-    }
-    else
-    {
-        data = *(lcd->ddPtr);
-    }
-
-    return data;
+    if (lcd->cgPtr) return *lcd->cgPtr;
+    if (lcd->graphicsMode) return *lcd->gdPtr;
+    return *lcd->ddPtr;
 }
 
 
@@ -525,7 +455,14 @@ const uint8_t* vrEmuLcdCharBits(VrEmuLcd* lcd, uint8_t c)
 
     if (c < CGRAM_STORAGE_CHARS)
     {
-        return lcd->cgRam[c];
+        // Codes 00..07 and 08..0f alias the same eight CGRAM glyphs.
+        for (int x = 0; x < CHAR_WIDTH_PX; ++x) {
+            uint8_t bits = 0;
+            for (int y = 0; y < CHAR_HEIGHT_PX; ++y)
+                if (lcd->cgRam[c & 7][y] & (0x10 >> x)) bits |= 0x80 >> y;
+            lcd->characterColumns[x] = bits;
+        }
+        return lcd->characterColumns;
     }
 
     const int characterRomIndex = c - CGRAM_STORAGE_CHARS;
@@ -551,30 +488,17 @@ const uint8_t* vrEmuLcdCharBits(VrEmuLcd* lcd, uint8_t c)
  */
 int vrEmuLcdGetDataOffset(VrEmuLcd* lcd, int row, int col)
 {
-    // adjust for display scroll offset
-    if (row >= lcd->rows) row = lcd->rows - 1;
-
-    while (lcd->scrollOffset < 0)
-    {
-        lcd->scrollOffset += lcd->dataWidthCols;
+    row = std::max(0, std::min(row, lcd->rows - 1));
+    if (lcd->gdRam) {
+        const int dataCol = ((col + lcd->scrollOffset) % lcd->dataWidthCols + lcd->dataWidthCols) % lcd->dataWidthCols;
+        return rowOffsetsGfx[row] * 2 + dataCol;
     }
-
-    int dataCol = (col + lcd->scrollOffset) % lcd->dataWidthCols;
-    int rowOffset = row * lcd->dataWidthCols;
-
-    if (lcd->rows > 1)
-    {
-        if (lcd->gdPtr)
-        {
-            rowOffset = rowOffsetsGfx[row] * 2;
-        }
-        else
-        {
-            rowOffset = rowOffsets[row];
-        }
-    }
-
-    return rowOffset + dataCol;
+    const bool twoLine = (lcd->functionFlags & LCD_CMD_FUNCTION_LCD_2LINE) != 0;
+    const int width = twoLine ? 40 : 80;
+    // A four-row module splits each 40-character controller line in two.
+    const int start = row >= 2 ? lcd->cols : 0;
+    const int dataCol = ((col + start + lcd->scrollOffset) % width + width) % width;
+    return ((twoLine && (row & 1)) ? 0x40 : 0) + dataCol;
 }
 
 /*
@@ -613,8 +537,7 @@ void vrEmuLcdUpdatePixels(VrEmuLcd* lcd)
             int cursorOn = lcd->displayFlags & CURSOR_MASK;
             if (lcd->displayFlags & LCD_CMD_DISPLAY_CURSOR_BLINK)
             {
-                if (((int)(clock() * CLOCK_TO_MS) % CURSOR_BLINK_CYCLE_MS)
-                < CURSOR_BLINK_PERIOD_MS)
+                if ((lcd->elapsedNanoseconds / lcd->blinkHalfPeriodNanoseconds) % 2 == 0)
                 {
                     cursorOn &= ~LCD_CMD_DISPLAY_CURSOR_BLINK;
                 }
@@ -634,7 +557,7 @@ void vrEmuLcdUpdatePixels(VrEmuLcd* lcd)
                     uint8_t* ddPtr = lcd->ddRam + vrEmuLcdGetDataOffset(lcd, row, col);
 
                     // only draw cursor if the data pointer is pointing at this character
-                    int drawCursor = cursorOn && (ddPtr == lcd->ddPtr);
+                    int drawCursor = cursorOn && !lcd->cgPtr && (ddPtr == lcd->ddPtr);
 
                     // get the character data (bits) for the current character
                     const uint8_t* bits = vrEmuLcdCharBits(lcd, *ddPtr);
@@ -649,7 +572,7 @@ void vrEmuLcdUpdatePixels(VrEmuLcd* lcd)
                             // is the display on?
                             if (!displayOn)
                             {
-                                *pixel = -1;
+                                *pixel++ = 0;
                                 continue;
                             }
 
@@ -680,8 +603,7 @@ void vrEmuLcdUpdatePixels(VrEmuLcd* lcd)
         int cursorOn = lcd->displayFlags & CURSOR_MASK;
         if (lcd->displayFlags & LCD_CMD_DISPLAY_CURSOR_BLINK)
         {
-            if (((int)(clock() * CLOCK_TO_MS) % CURSOR_BLINK_CYCLE_MS)
-            < CURSOR_BLINK_PERIOD_MS)
+            if ((lcd->elapsedNanoseconds / lcd->blinkHalfPeriodNanoseconds) % 2 == 0)
             {
                 cursorOn &= ~LCD_CMD_DISPLAY_CURSOR_BLINK;
             }
@@ -701,7 +623,7 @@ void vrEmuLcdUpdatePixels(VrEmuLcd* lcd)
                 uint8_t* ddPtr = lcd->ddRam + vrEmuLcdGetDataOffset(lcd, row, col);
 
                 // only draw cursor if the data pointer is pointing at this character
-                int drawCursor = cursorOn && (ddPtr == lcd->ddPtr);
+                int drawCursor = cursorOn && !lcd->cgPtr && (ddPtr == lcd->ddPtr);
 
                 // get the character data (bits) for the current character
                 const uint8_t* bits = vrEmuLcdCharBits(lcd, *ddPtr);
@@ -714,9 +636,9 @@ void vrEmuLcdUpdatePixels(VrEmuLcd* lcd)
                     for (int x = 0; x < CHAR_WIDTH_PX; ++x)
                     {
                         // is the display on?
-                        if (!displayOn)
+                        if (!displayOn || (!(lcd->functionFlags & LCD_CMD_FUNCTION_LCD_2LINE) && row != 0))
                         {
-                            *pixel = -1;
+                            *pixel++ = 0;
                             continue;
                         }
 
@@ -783,10 +705,16 @@ int vrEmuLcdNumPixelsY(VrEmuLcd* lcd)
  *  1 = pixel on
  *
  */
-char vrEmuLcdPixelState(VrEmuLcd* lcd, int x, int y)
+int8_t vrEmuLcdPixelState(VrEmuLcd* lcd, int x, int y)
 {
+    if (x < 0 || y < 0 || x >= lcd->pixelsWidth || y >= lcd->pixelsHeight) return -1;
     int offset = y * lcd->pixelsWidth + x;
-    if (offset >= 0 && offset < lcd->numPixels)
-        return lcd->pixels[offset];
+    if (offset < lcd->numPixels)
+        return static_cast<int8_t>(lcd->pixels[offset]);
     return -1;
+}
+
+void vrEmuLcdAdvanceTime(VrEmuLcd* lcd, uint64_t nanoseconds) {
+    const uint64_t period = 2 * lcd->blinkHalfPeriodNanoseconds;
+    lcd->elapsedNanoseconds = (lcd->elapsedNanoseconds + nanoseconds % period) % period;
 }

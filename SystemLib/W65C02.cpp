@@ -1,5 +1,6 @@
 #include <iostream>
 #include "W65C02.h"
+#include "CyclePacer.h"
 
 W65C02::W65C02(double Mhz) {
     reset();
@@ -54,6 +55,7 @@ void W65C02::initializeOpcodeMatrix() {
 
 void W65C02::connectBus(Bus* bus) {
     this->bus = bus;
+    cycles.setTickCallback([this] { if (this->bus) this->bus->tick(); });
 }
 
 /**
@@ -61,14 +63,21 @@ void W65C02::connectBus(Bus* bus) {
  * @param pc the value to set the PC. Default value of 0xFFFE.
  */
 void W65C02::reset(word pc) {
-    PC = pc;
-    SP = 0xFF;
-    PS.reset();
-    PS.set(StatusFlags::U);
-    PS.set(StatusFlags::B);
-    PS.set(StatusFlags::I);
-    A = X = Y = 0;
-    STOP = WAIT = false;
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        PC = pc;
+        SP = 0xFF;
+        PS.reset();
+        PS.set(StatusFlags::U);
+        PS.set(StatusFlags::B);
+        PS.set(StatusFlags::I);
+        A = X = Y = 0;
+        STOP = WAIT = false;
+        breakpointHit = skipBreakpointOnce = false;
+        executionEnabled = true;
+        resetPending = true;
+    }
+    wake.notify_one();
 }
 
 void W65C02::interruptRequest() {
@@ -101,7 +110,7 @@ void W65C02::nonMaskableInterrupt() {
  * @return The value at the given address
  */
 byte W65C02::readByte(word address) {
-    CyclesIncrementer cd(cycles);
+    ++cycles;
     return bus->read(address);
 }
 
@@ -130,8 +139,8 @@ void W65C02::writeWord(word data, word address) {
 }
 
 void W65C02::writeByte(byte data, word address) {
-    bus->write(data, address);
     ++cycles;
+    bus->write(data, address);
 }
 
 void W65C02::bitInstructionSetStatus(byte value, bool immediateMode) {
@@ -479,24 +488,33 @@ word W65C02::zeroPageIndirect(byte W65C02::* reg, Operation op) {
 }
 
 void W65C02::execute(uint64_t numInstructionsToExecute) {
-    while(numInstructionsToExecute--) {
-        if(STOP) continue;
-        if(IRQB) interruptRequest();
-        if(NMIB) {
-            nonMaskableInterrupt();
-            NMIB = false;
-        }
-        if(WAIT) continue;
-        int pcTemp = PC;
-        byte opcodeNum = fetchByte();
-        opcode = opCodeMatrix[opcodeNum];
-        opcodeString = opCodeStringMatrix[opcodeNum];
+    while(numInstructionsToExecute--) executeOne(false);
+}
 
-        (this->*(opcode.instruction))(opcode.addressMode);
-        /*std::cout << opcodeString.instructionString << "\t" << std::left << std::setw(25) << opcodeString.addressModeString <<
-                  "PC: " << std::setw(10) << PC << "A: " << std::setw(10) << (int)A << "X: "  << std::setw(10) << (int)X << "Y: " << std::setw(10) << (int)Y <<
-                  "SP: " << std::setw(10) << (int)SP << std::endl;*/
+void W65C02::executeOne(bool honorBreakpoints) {
+    // PHI2 continues to clock peripherals while instruction execution is halted.
+    if(STOP) { ++cycles; return; }
+    if(IRQB || (bus && bus->irqAsserted())) interruptRequest();
+    if(NMIB) {
+        nonMaskableInterrupt();
+        NMIB = false;
     }
+    if(WAIT) { ++cycles; return; }
+    if(honorBreakpoints) {
+        const bool skip = skipBreakpointOnce && PC == breakpointAddress;
+        skipBreakpointOnce = false;
+        if(breakpoints.test(PC) && !skip) {
+            breakpointHit = true;
+            breakpointAddress = PC;
+            executionEnabled = false;
+            return; // Before opcode fetch, including at interrupt handler entry.
+        }
+    }
+    instructionPC = PC;
+    byte opcodeNum = fetchByte();
+    opcode = opCodeMatrix[opcodeNum];
+    opcodeString = opCodeStringMatrix[opcodeNum];
+    (this->*(opcode.instruction))(opcode.addressMode);
 }
 
 void W65C02::ADC(AddressMode addrMode) {
@@ -1076,5 +1094,112 @@ void W65C02::loadRegister(byte& Register, byte value) {
 }
 
 void W65C02::setCycleDuration(double Mhz) {
-    cycles.setCycleDuration(Mhz);
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        cycles.setCycleDuration(Mhz);
+        resetPending = true;
+    }
+    wake.notify_one();
+}
+
+
+W65C02::~W65C02() {
+    stop();
+}
+
+void W65C02::start() {
+    std::lock_guard<std::mutex> lock(mutex);
+    if (worker.joinable()) return;
+    stopping = false;
+    executionEnabled = false;
+    resetPending = false;
+    worker = std::thread(&W65C02::run, this);
+}
+
+void W65C02::stop() {
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        stopping = true;
+    }
+    wake.notify_one();
+    if (worker.joinable()) worker.join();
+}
+
+void W65C02::resume() {
+    start();
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        skipBreakpointOnce = breakpointHit && PC == breakpointAddress;
+        breakpointHit = false;
+        executionEnabled = true;
+        resetPending = true; // Restart wall-clock pacing at the current cycle.
+    }
+    wake.notify_one();
+}
+
+W65C02::StepResult W65C02::step() {
+    stop(); // No CPU/peripheral work can race this instruction.
+    std::lock_guard<std::mutex> lock(mutex);
+    breakpointHit = skipBreakpointOnce = false;
+    if (STOP) return {StepResult::Kind::Stopped, PC, PC, 0, "STP"};
+    if (WAIT && !NMIB && !IRQB && !(bus && bus->irqAsserted())) {
+        ++cycles;
+        return {StepResult::Kind::Waiting, PC, PC, 1, "WAI"};
+    }
+    const auto before = cycles.getCycles();
+    execute(1); // Includes pending interrupt entry before the handler opcode.
+    return {StepResult::Kind::Instruction, instructionPC, PC,
+            cycles.getCycles() - before, opcodeString.instructionString};
+}
+
+void W65C02::setBreakpoints(const std::vector<word>& addresses) {
+    std::lock_guard<std::mutex> lock(mutex);
+    breakpoints.reset();
+    for(auto address : addresses) breakpoints.set(address);
+}
+
+W65C02::BreakpointState W65C02::breakpointState() {
+    std::lock_guard<std::mutex> lock(mutex);
+    return {breakpointHit, breakpointAddress};
+}
+
+void W65C02::interrupt(bool nmi, bool asserted) {
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        (nmi ? NMIB : IRQB) = asserted;
+    }
+    wake.notify_one();
+}
+
+bool W65C02::runnable() const {
+    return executionEnabled;
+}
+
+void W65C02::run() {
+    std::unique_lock<std::mutex> lock(mutex);
+    CyclePacer pacer(cycles.getFrequencyHz());
+    pacer.reset(cycles.getCycles());
+    while (!stopping) {
+        if (!runnable()) {
+            wake.wait(lock, [this] { return stopping || resetPending || runnable(); });
+            if (stopping) break;
+            // Time before the system clock starts is not work owed.
+            pacer.reset(cycles.getCycles());
+        }
+        if (resetPending) {
+            pacer = CyclePacer(cycles.getFrequencyHz());
+            pacer.reset(cycles.getCycles());
+            resetPending = false;
+        }
+        if (!runnable()) continue;
+
+        const auto target = cycles.getCycles() + pacer.batchCycles();
+        while (cycles.getCycles() < target && runnable())
+            executeOne(true);
+
+        // Release the state lock while sleeping; reset/shutdown interrupts
+        // even long sleeps. Absolute deadlines carry late wakeups forward.
+        wake.wait_until(lock, pacer.deadline(cycles.getCycles()),
+                        [this] { return stopping || resetPending; });
+    }
 }

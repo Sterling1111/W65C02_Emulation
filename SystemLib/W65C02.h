@@ -6,6 +6,10 @@
 #include "Cycles.h"
 #include "Bus.h"
 #include <vector>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+#include <string>
 
 #define SIGN_BIT_POS 7
 #define CARRY_BIT_POS 8
@@ -47,6 +51,31 @@ public:
     typedef void (W65C02::* Instruction)(AddressMode);
 
     explicit W65C02(double Mhz = 1);
+    ~W65C02();
+
+    // Start a sleeping execution worker; reset() begins paced execution.
+    // Lifecycle calls belong to the owning thread. stop() joins the worker.
+    void start();
+    void stop();
+    // Resume the current machine state without resetting registers or memory.
+    void resume();
+    struct StepResult {
+        enum class Kind { Instruction, Waiting, Stopped };
+        Kind kind;
+        word address, nextPC;
+        uint64_t cycles;
+        std::string mnemonic;
+    };
+    // Join the worker, execute one instruction synchronously, and stay paused.
+    // WAI with no interrupt advances one idle clock; STP requires reset.
+    StepResult step();
+    struct BreakpointState { bool hit; word address; };
+    // Thread-safe debugger controls. Reset retains addresses and rearms them.
+    void setBreakpoints(const std::vector<word>& addresses);
+    BreakpointState breakpointState();
+    void interrupt(bool nmi, bool asserted);
+    // Lock while inspecting CPU state or peripherals while the worker runs.
+    std::mutex& stateMutex() { return mutex; }
     void connectBus(Bus* bus);
     void initializeOpcodeMatrix();
     void setCycleDuration(double Mhz);
@@ -64,6 +93,7 @@ public:
     void NZSetStatus(byte value);
     void NZCSetStatus(byte value);
     void NZVSetStatus(byte value);
+    // Synchronous stepping; do not call concurrently with the worker.
     void execute(uint64_t numInstructionsToExecute = 1);
     void pushByteToStack(byte data);
     void pushWordToStack(word data);
@@ -202,6 +232,21 @@ public:
             INS_ROL_ABSX = 0x3E,
             INS_LSR_ABSX = 0x5E,
             INS_ROR_ABSX = 0x7E;
+private:
+    word instructionPC{};
+    std::bitset<65536> breakpoints;
+    bool breakpointHit{}, skipBreakpointOnce{};
+    word breakpointAddress{};
+    void executeOne(bool honorBreakpoints);
+    void run();
+    bool runnable() const;
+    std::mutex mutex;
+    std::condition_variable wake;
+    bool stopping{};
+    bool executionEnabled{};
+    bool resetPending{};
+    std::thread worker;
+
 };
 
 #endif //INC_65C02_EMULATION__65C02_H

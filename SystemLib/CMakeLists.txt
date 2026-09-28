@@ -11,28 +11,51 @@ set(SYSTEM_LIB_SOURCES
         "EEPROM.cpp"
         "RAM.cpp"
         "Bus.cpp"
-        "main.cpp"
         "Cycles.cpp"
         "Lights.cpp"
         "LCD.cpp")
 
+# The SFML distribution checked into this repository is for Windows.
+# On Linux, use the installed SFML 2 development package.
 if(WIN32)
     set(SFML_STATIC_LIBRARIES true)
+    set(SFML_DIR ${CMAKE_SOURCE_DIR}/SFML/lib/cmake/SFML)
 endif()
+find_package(Threads REQUIRED)
+find_package(SFML 2 COMPONENTS system window graphics REQUIRED)
 
-set(SFML_DIR ${CMAKE_SOURCE_DIR}/SFML/lib/cmake/SFML)
-find_package(SFML COMPONENTS system window graphics audio network REQUIRED)
+add_library(SystemLib ${SYSTEM_LIB_SOURCES})
+target_include_directories(SystemLib PUBLIC ${PROJECT_SOURCE_DIR})
+target_link_libraries(SystemLib PUBLIC Threads::Threads)
 
-include_directories(${CMAKE_SOURCE_DIR}/SFML/include)
+add_library(EmulatorIdeCore AsmDocument.cpp IdeWorkspace.cpp)
+target_include_directories(EmulatorIdeCore PUBLIC ${PROJECT_SOURCE_DIR})
+target_compile_features(EmulatorIdeCore PUBLIC cxx_std_17)
+target_link_libraries(EmulatorIdeCore PUBLIC Threads::Threads)
 
-add_library( SystemLib ${SYSTEM_LIB_SOURCES})
-
-add_executable(main ${SYSTEM_LIB_SOURCES})
+add_executable(main main.cpp LcdPanel.cpp BreadboardView.cpp EmulatorIde.cpp)
+# Reuse the font shipped with SFML; no host font installation is needed.
+configure_file(${CMAKE_SOURCE_DIR}/SFML/examples/shader/resources/sansation.ttf
+               ${CMAKE_CURRENT_BINARY_DIR}/assets/sansation.ttf COPYONLY)
+target_compile_definitions(main PRIVATE
+    BREADBOARD_FONT_PATH="${CMAKE_CURRENT_BINARY_DIR}/assets/sansation.ttf")
+configure_file(${CMAKE_SOURCE_DIR}/assets/fonts/DejaVuSansMono.ttf
+               ${CMAKE_CURRENT_BINARY_DIR}/assets/DejaVuSansMono.ttf COPYONLY)
 if(WIN32)
-    target_link_libraries(main sfml-system sfml-window sfml-graphics sfml-audio -mwindows -static -static-libstdc++ -static-libgcc)
+    set(IDE_ASSEMBLER ${CMAKE_SOURCE_DIR}/VASM/vasm6502_oldstyle.exe)
 else()
-    target_link_libraries(main sfml-system sfml-window sfml-graphics sfml-audio -static-libstdc++ -static-libgcc -lX11)
+    set(IDE_ASSEMBLER ${CMAKE_SOURCE_DIR}/VASM/vasm6502_oldstyle)
 endif()
+target_compile_definitions(main PRIVATE
+    IDE_CODE_FONT_PATH="${CMAKE_CURRENT_BINARY_DIR}/assets/DejaVuSansMono.ttf"
+    IDE_PROGRAMS_PATH="${CMAKE_SOURCE_DIR}/VASM"
+    IDE_ASSEMBLER_PATH="${IDE_ASSEMBLER}"
+    IDE_BUILDS_PATH="${CMAKE_BINARY_DIR}/ide")
+target_link_libraries(main PRIVATE SystemLib EmulatorIdeCore sfml-graphics sfml-window sfml-system)
 
-
-target_include_directories ( SystemLib PUBLIC ${PROJECT_SOURCE_DIR})
+if(WIN32)
+    target_link_libraries(main PRIVATE -mwindows -static -static-libstdc++ -static-libgcc)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    find_package(X11 REQUIRED)
+    target_link_libraries(main PRIVATE X11::X11)
+endif()

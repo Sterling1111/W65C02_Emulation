@@ -42,7 +42,7 @@
 #define CGRAM_STORAGE_CHARS  16
 #define ROM_FONT_CHARS       (256 - CGRAM_STORAGE_CHARS)
 
-#define CLOCK_TO_MS  (1.0 / (CLOCKS_PER_SEC / 1000.0))
+
 
 #define CURSOR_MASK  (LCD_CMD_DISPLAY_CURSOR_BLINK | LCD_CMD_DISPLAY_CURSOR)
 #define CURSOR_BLINK_PERIOD_MS  350
@@ -75,6 +75,10 @@ class VrEmuLcd
     // current state
     uint8_t entryModeFlags;
     uint8_t displayFlags;
+    uint8_t functionFlags; // DL/N/F; independent of the physical module size.
+    uint64_t elapsedNanoseconds;
+    uint64_t blinkHalfPeriodNanoseconds;
+    uint8_t characterColumns[CHAR_WIDTH_PX];
     int scrollOffset;
 
     // ddRam storage
@@ -83,7 +87,7 @@ class VrEmuLcd
     int dataWidthCols;
 
     // cgRam storage
-    uint8_t cgRam[CGRAM_STORAGE_CHARS][CHAR_HEIGHT_PX];
+    uint8_t cgRam[8][CHAR_HEIGHT_PX]; // 64 raw bytes, eight 5x8 glyphs.
     uint8_t* cgPtr;
 
     // which character rom?
@@ -124,6 +128,8 @@ const uint8_t LCD_CMD_SHIFT_DISPLAY        = 0b00001000;
 const uint8_t LCD_CMD_SHIFT_LEFT           = 0b00000000;
 const uint8_t LCD_CMD_SHIFT_RIGHT          = 0b00000100;
 
+const uint8_t LCD_CMD_FUNCTION_8BIT        = 0b00010000;
+const uint8_t LCD_CMD_FUNCTION_5X10        = 0b00000100;
 const uint8_t LCD_CMD_FUNCTION             = 0b00100000;
 const uint8_t LCD_CMD_FUNCTION_LCD_1LINE   = 0b00000000;
 const uint8_t LCD_CMD_FUNCTION_LCD_2LINE   = 0b00001000;
@@ -251,6 +257,7 @@ const uint8_t *vrEmuLcdCharBits(VrEmuLcd* lcd, uint8_t c);
  */
 
 void vrEmuLcdUpdatePixels(VrEmuLcd* lcd);
+void vrEmuLcdAdvanceTime(VrEmuLcd* lcd, uint64_t nanoseconds);
 
 /* Function:  vrEmuLcdNumPixels
  * ----------------------------------------
@@ -283,7 +290,7 @@ int vrEmuLcdNumPixelsY(VrEmuLcd *lcd);
  *
  */
 
-char vrEmuLcdPixelState(VrEmuLcd *lcd, int x, int y);
+int8_t vrEmuLcdPixelState(VrEmuLcd *lcd, int x, int y);
 
 
 // A00 (Japanese) character set.
