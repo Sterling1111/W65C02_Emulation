@@ -294,3 +294,47 @@ TEST_F(IdeFiles, BreakpointsCanBeAddedWhileCpuRunsAndDoNotAffectSynchronousExecu
     s.cpu.reset(0x8000);s.cpu.execute(2);EXPECT_EQ(s.cpu.X,1);EXPECT_EQ(s.cpu.PC,0x8000);
     EXPECT_FALSE(s.cpu.breakpointState().hit);
 }
+
+TEST_F(IdeFiles, LabelBreakpointsResolveToFollowingInstructionAndHaltBeforeIt) {
+    const std::string source="    .org $8000\nreset:\nalias: ; same instruction\n; explanatory comment\n\n    inx\n    bra reset\n    .org $fffa\n    .word reset,reset,reset\n";
+    auto rom=assembleProgram(TEST_VASM_PATH,root,root/"build","labels.asm",source);ASSERT_TRUE(rom.success)<<rom.output;
+    EXPECT_EQ(rom.breakpointAddresses.at(2),(std::vector<uint16_t>{0x8000}));
+    EXPECT_EQ(rom.breakpointAddresses.at(3),rom.breakpointAddresses.at(6));
+    EXPECT_EQ(rom.sourceLines.at(0x8000),6u); // Highlight the actual instruction, not the label.
+    EXPECT_EQ(rom.breakpointAddresses.count(4),0u);EXPECT_EQ(rom.breakpointAddresses.count(5),0u);
+    System s{0,0x3fff,0x6000,0x7fff,0x8000,0xffff,1};s.loadProgram(rom.rom.string());s.reset(false);
+    s.cpu.setBreakpoints(rom.breakpointAddresses.at(2));s.cpu.resume();ASSERT_TRUE(awaitBreakpoint(s.cpu));
+    {std::lock_guard<std::mutex> lock(s.cpu.stateMutex());EXPECT_EQ(s.cpu.X,0);EXPECT_EQ(s.cpu.debugAddress(),0x8000);}
+    s.cpu.resume();ASSERT_TRUE(awaitBreakpoint(s.cpu));
+    {std::lock_guard<std::mutex> lock(s.cpu.stateMutex());EXPECT_EQ(s.cpu.X,1);EXPECT_EQ(s.cpu.debugAddress(),0x8000);}
+}
+TEST_F(IdeFiles, LabelBindingDoesNotCrossAddressChangesOrIncludedCode) {
+    writeFile(root/"part.inc","    nop\n");
+    const std::string source="    .org $8000\nbefore_gap:\n    .org $8010\nreset:\n    nop\nbefore_include:\n    .include \"part.inc\"\n    stp\n    .org $fffa\n    .word reset,reset,reset\n";
+    auto rom=assembleProgram(TEST_VASM_PATH,root,root/"build","labels.asm",source);ASSERT_TRUE(rom.success)<<rom.output;
+    EXPECT_EQ(rom.breakpointAddresses.count(2),0u);EXPECT_EQ(rom.breakpointAddresses.count(6),0u);
+    EXPECT_EQ(rom.breakpointAddresses.at(4),(std::vector<uint16_t>{0x8010}));
+    EXPECT_EQ(rom.breakpointAddresses.at(8),(std::vector<uint16_t>{0x8012}));
+}
+TEST_F(IdeFiles, DebugLocationStaysOnWaitingAndStoppedInstructions) {
+    const std::string source="    .org $8000\nreset:\n    wai\n    stp\n    .org $fffa\n    .word reset,reset,reset\n";
+    auto rom=assembleProgram(TEST_VASM_PATH,root,root/"build","halt.asm",source);ASSERT_TRUE(rom.success);
+    System s{0,0x3fff,0x6000,0x7fff,0x8000,0xffff,1};s.loadProgram(rom.rom.string());s.reset(false);
+    EXPECT_EQ(s.cpu.debugAddress(),0x8000);
+    s.cpu.step();ASSERT_TRUE(s.cpu.WAIT);EXPECT_EQ(s.cpu.PC,0x8001);EXPECT_EQ(s.cpu.debugAddress(),0x8000);
+    EXPECT_EQ(rom.sourceLines.at(s.cpu.debugAddress()),3u);
+    s.cpu.step();EXPECT_EQ(s.cpu.debugAddress(),0x8000);
+    s.cpu.interrupt(false,true);s.cpu.step(); // Masked IRQ wakes WAI without vectoring.
+    ASSERT_TRUE(s.cpu.STOP);EXPECT_EQ(s.cpu.debugAddress(),0x8001);
+    EXPECT_EQ(rom.sourceLines.at(s.cpu.debugAddress()),4u);
+    s.cpu.step();EXPECT_EQ(s.cpu.debugAddress(),0x8001);
+    s.cpu.interrupt(false,false);s.reset(false);EXPECT_EQ(s.cpu.debugAddress(),0x8000);
+}
+TEST_F(IdeFiles, RebuildRemapsSourceBreakpointsWhenInstructionSizesChange) {
+    auto original=assembleProgram(TEST_VASM_PATH,root,root/"build","move.asm",program);ASSERT_TRUE(original.success);
+    auto edited=program;edited.replace(edited.find("lda #$42"),8,"lda $1234");
+    auto rebuilt=assembleProgram(TEST_VASM_PATH,root,root/"build","move.asm",edited);ASSERT_TRUE(rebuilt.success);
+    EXPECT_EQ(original.breakpointAddresses.at(4),(std::vector<uint16_t>{0x8002}));
+    EXPECT_EQ(rebuilt.breakpointAddresses.at(4),(std::vector<uint16_t>{0x8003}));
+    EXPECT_EQ(rebuilt.sourceLines.at(0x8003),4u);
+}

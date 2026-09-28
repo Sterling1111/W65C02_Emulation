@@ -178,6 +178,24 @@ AsmBuildResult assembleProgram(const fs::path& assembler,const fs::path& program
             else if(mainSource && std::regex_search(line,match,encodedLine))
                 result.sourceLines[static_cast<uint16_t>(std::stoul(match[1],nullptr,16))]=std::stoul(match[2]);
         }
+        for(const auto& entry:result.sourceLines)
+            result.breakpointAddresses[entry.second].push_back(entry.first);
+        // A label-only line names the following encoded line. Do not cross
+        // directives/includes: these can change the address or emit other code.
+        std::istringstream sourceText(source);
+        std::vector<size_t> labels;
+        size_t lineNumber=0;
+        const std::regex labelOnly(R"(^\s*[A-Za-z_.$][A-Za-z0-9_.$]*:\s*$)");
+        while(std::getline(sourceText,line)) {
+            ++lineNumber;
+            const auto code=line.substr(0,line.find(';'));
+            auto encoded=result.breakpointAddresses.find(lineNumber);
+            if(encoded!=result.breakpointAddresses.end()) {
+                for(auto label:labels)result.breakpointAddresses[label]=encoded->second;
+                labels.clear();
+            } else if(std::regex_match(code,labelOnly))labels.push_back(lineNumber);
+            else if(code.find_first_not_of(" \t\r")!=std::string::npos)labels.clear();
+        }
         result.success=true;result.output+="\nBuild succeeded. ROM: 32768 bytes.\n";
     } catch(const std::exception& e) {result.output+="\nBuild failed: "+std::string(e.what())+"\n";}
     return result;

@@ -41,7 +41,7 @@ performance. The setting is session-only, not written back to main.cpp.
    the source, loads the ROM, and pauses at the reset vector before executing
    any instruction.
 2. Click **Step (F10)** to execute one CPU instruction. The CPU remains paused
-   afterward. The green source line indicates the next instruction; the
+   afterward. The amber source line and gutter arrow indicate the next instruction; the
    register strip shows PC, A, X, Y, SP, and processor flags P in hexadecimal.
    The status bar reports the executed instruction and its cycle count.
 3. Use **Continue / Pause (F8)** to resume from the current registers and memory
@@ -54,6 +54,13 @@ running, Step stops its worker first, executes one instruction, and leaves it
 paused. JSR enters the subroutine; RTS and branches follow their normal targets.
 Holding F10 does not auto-repeat. The board's PAUSED state is distinct from a
 CPU halted by STP.
+
+Stepping, pausing, and restarting paused preserve the current tab. They update
+the loaded program's source position in the background, so opening the Editor
+shows the highlighted instruction in view. Breakpoint hits open the Editor.
+The header shows the address and line number. The arrow remains on WAI while waiting and on STP
+while halted, labeled WAITING AT or HALTED AT, rather than moving to an
+instruction that cannot execute yet.
 
 Source positions come from vasm's listing for the exact loaded build. The
 highlight is shown only when the selected main source buffer still matches
@@ -78,8 +85,10 @@ programs and tabs during this session; they are not saved across app restarts.
 
 A **solid red dot** means the breakpoint is bound to the loaded ROM. A **hollow
 red dot** is pending: build and load the matching source with **F5** or **F7**.
-Choose a line that emits code; blank lines, comments, and label-only lines have
-no address and remain pending. Breakpoints use the exact addresses from vasm's
+Choose an instruction or its label. A label-only line binds to the next
+encoded line, across adjacent labels, comments, and blank lines. Binding does
+not cross an intervening directive or include. Blank/comment-only lines remain
+pending. Breakpoints use the exact addresses from vasm's
 listing, including each emitted address for a source line.
 
 Execution pauses before the instruction, switches to the Editor, and highlights

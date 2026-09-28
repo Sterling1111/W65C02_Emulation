@@ -11,7 +11,7 @@
 namespace {
 using namespace sf;
 constexpr float Width=1280,Height=900,Side=240;
-constexpr float CodeX=308,CodeY=153,LineHeight=21;
+constexpr float CodeX=328,CodeY=153,LineHeight=21;
 constexpr unsigned CodeSize=15;
 constexpr int VisibleLines=24;
 const Color bg(20,25,29),panel(26,32,37),edge(47,57,63),muted(132,151,158);
@@ -160,6 +160,7 @@ void EmulatorIde::loadAndRun(const AsmBuildResult& result) {
     system.ram.initialize();system.lcd.powerOn();
     system.reset(false);loaded=true;paused=debugAfterBuild;loadedName=buildName;
     loadedSource=buildSource;loadedLines=result.sourceLines;
+    loadedBreakpointAddresses=result.breakpointAddresses;
     syncBreakpoints();
     if(!debugAfterBuild)system.cpu.resume();
     setTab(debugAfterBuild?Tab::Editor:Tab::Board);
@@ -276,21 +277,26 @@ void EmulatorIde::toggleBreakpoint(size_t line) {
     else {
         lines.insert(line);
         status="Breakpoint on line "+std::to_string(line)+
-            (breakpointBound(line)?". F8 continues to it.":" pending: build/load matching source; choose a line that emits code.");
+            (breakpointBound(line)?". F8 continues to it.":" pending: build/load matching source; choose an instruction or its label.");
     }
     syncBreakpoints();
 }
 bool EmulatorIde::breakpointBound(size_t line) {
     if(!loaded || selected!=loadedName || !document() || document()->text()!=loadedSource)return false;
-    for(const auto& entry:loadedLines)if(entry.second==line)return true;
-    return false;
+    return loadedBreakpointAddresses.count(line)!=0;
 }
 void EmulatorIde::syncBreakpoints() {
     std::vector<word> addresses;
     auto doc=documents.find(loadedName);
     auto points=breakpointLines.find(loadedName);
-    if(loaded && doc!=documents.end() && doc->second.text()==loadedSource && points!=breakpointLines.end())
-        for(const auto& entry:loadedLines)if(points->second.count(entry.second))addresses.push_back(entry.first);
+    if(loaded && doc!=documents.end() && doc->second.text()==loadedSource && points!=breakpointLines.end()) {
+        for(auto line:points->second) {
+            auto bound=loadedBreakpointAddresses.find(line);
+            if(bound!=loadedBreakpointAddresses.end())addresses.insert(addresses.end(),bound->second.begin(),bound->second.end());
+        }
+        std::sort(addresses.begin(),addresses.end());
+        addresses.erase(std::unique(addresses.begin(),addresses.end()),addresses.end());
+    }
     if(addresses!=activeBreakpoints) {
         system.cpu.setBreakpoints(addresses);activeBreakpoints=std::move(addresses);
     }
@@ -308,14 +314,38 @@ size_t EmulatorIde::nextSourceLine() {
     if(!loaded || !paused || selected!=loadedName || !document() || document()->text()!=loadedSource)return 0;
     word pc;
     {std::lock_guard<std::mutex> lock(system.cpu.stateMutex());
-        if(system.cpu.STOP)return 0;
-        pc=system.cpu.PC;
+        pc=system.cpu.debugAddress();
     }
     auto found=loadedLines.find(pc);return found==loadedLines.end()?0:found->second;
 }
 void EmulatorIde::followInstruction() {
+    if(!loaded || !paused || !documents.count(loadedName))return;
+    // Track the source without changing the view chosen by the user.
+    selected=loadedName;findOpen=false;
     size_t line=nextSourceLine();
-    if(line && document()) {document()->setCursor(document()->lineStart(line-1));keepCursorVisible();}
+    if(line && document()) {
+        const auto start=document()->lineStart(line-1),end=document()->lineEnd(line-1);
+        auto instruction=document()->text().find_first_not_of(" \t",start);
+        document()->setCursor(instruction<end?instruction:start);
+        const auto index=line-1;
+        // Leave surrounding instructions visible after a branch/call or scroll.
+        if(index<document()->topLine+2 || index>=document()->topLine+VisibleLines-3) {
+            const size_t middle=VisibleLines/2;
+            const size_t maximum=document()->lineCount()>VisibleLines?document()->lineCount()-VisibleLines:0;
+            document()->topLine=std::min(maximum,index>middle?index-middle:0);
+        }
+        keepCursorVisible();
+    }
+}
+std::string EmulatorIde::executionText() {
+    if(!loaded || !paused)return "Click gutter / Ctrl+B: breakpoint | hollow: pending";
+    if(selected!=loadedName)return "Paused in "+shorten(loadedName,28)+" | F10: follow";
+    if(!document() || document()->text()!=loadedSource)return "Source changed: F7 rebuilds debug positions";
+    std::lock_guard<std::mutex> lock(system.cpu.stateMutex());
+    const auto address=system.cpu.debugAddress();
+    auto found=loadedLines.find(address);
+    return std::string(system.cpu.STOP?"HALTED AT":system.cpu.WAIT?"WAITING AT":"NEXT")+
+        " $"+hexValue(address,4)+(found==loadedLines.end()?" | no source mapping":" | line "+std::to_string(found->second))+" | F10: step";
 }
 std::string EmulatorIde::registerText() {
     std::lock_guard<std::mutex> lock(system.cpu.stateMutex());
@@ -415,7 +445,7 @@ void EmulatorIde::mouseDown(Vector2f p) {
     if(runButton.contains(p)) {build(true);return;}
     if(stopButton.contains(p)) {releaseInputs();system.cpu.stop();paused=true;status="Paused. F10 steps; F8 continues.";followInstruction();return;}
     if(clockButton.contains(p)) {changeClock();return;}
-    if(FloatRect(254,70,115,32).contains(p)) {setTab(Tab::Editor);return;}
+    if(FloatRect(254,70,115,32).contains(p)) {setTab(Tab::Editor);if(paused)followInstruction();return;}
     if(FloatRect(377,70,135,32).contains(p)) {setTab(Tab::Board);return;}
     if(FloatRect(186,87,36,30).contains(p)) {dialog=Dialog::NewProgram;dialogText.clear();dialogError.clear();return;}
     if(FloatRect(16,823,94,30).contains(p)) {refreshPrograms();status="Program list refreshed.";return;}
@@ -426,7 +456,7 @@ void EmulatorIde::mouseDown(Vector2f p) {
         size_t i=listTop+size_t((p.y-133)/34);if(i<names.size())selectProgram(names[i]);return;
     }
     if(tab==Tab::Editor) {
-        if(editorArea.contains(p) && p.x<299) {
+        if(editorArea.contains(p) && p.x<318) {
             if(p.y>=CodeY)toggleBreakpoint(document()?document()->topLine+size_t((p.y-CodeY)/LineHeight)+1:0);
             dragging=false;return;
         }
@@ -511,7 +541,7 @@ void EmulatorIde::handle(const Event& event) {
     }
     if(ctrl && k.code==Keyboard::S) {saveCurrent();return;}
     if(ctrl && k.code==Keyboard::N) {dialog=Dialog::NewProgram;dialogText.clear();dialogError.clear();releaseInputs();return;}
-    if(ctrl && k.code==Keyboard::Tab) {setTab(tab==Tab::Editor?Tab::Board:Tab::Editor);return;}
+    if(ctrl && k.code==Keyboard::Tab) {setTab(tab==Tab::Editor?Tab::Board:Tab::Editor);if(tab==Tab::Editor && paused)followInstruction();return;}
     if(k.code==Keyboard::F5) {build(true);return;}
     if(k.code==Keyboard::F6) {build(false);return;}
     if(tab==Tab::Editor) {
@@ -536,10 +566,10 @@ void EmulatorIde::drawEditor() {
         box(window,{733,105,520,29},Color(42,54,62));
         label(window,codeFont,"Find: "+shorten(findText,44)+"_",746,112,13,white);
     } else {
-        label(window,uiFont,"Click gutter / Ctrl+B: breakpoint   |   hollow: pending",710,112,12,muted);
+        label(window,uiFont,executionText(),710,112,12,paused?amber:muted);
         label(window,uiFont,"Find  Ctrl+F",1136,112,13,muted);
     }
-    box(window,editorArea,Color(23,29,34));box(window,{252,143,46,523},Color(21,27,31));
+    box(window,editorArea,Color(23,29,34));box(window,{252,143,66,523},Color(21,27,31));
     if(!d) {label(window,uiFont,"Choose a program or click + to create one.",310,190,18,muted);return;}
     const float cw=codeFont.getGlyph('M',CodeSize,false).advance;
     const size_t visibleColumns=size_t((1255-CodeX)/cw);
@@ -549,11 +579,14 @@ void EmulatorIde::drawEditor() {
         size_t line=d->topLine+row;if(line>=d->lineCount())break;
         auto begin=d->lineStart(line),end=d->lineEnd(line);
         float y=CodeY+row*LineHeight;
-        if(line==location.first)box(window,{299,y-1,962,LineHeight},Color(30,39,44));
+        if(line==location.first)box(window,{319,y-1,942,LineHeight},Color(30,39,44));
         if(selected==errorFile && int(line+1)==errorLine)box(window,{252,y-1,1009,LineHeight},Color(95,43,47,125));
         if(line+1==executionLine) {
-            box(window,{252,y-1,1009,LineHeight},Color(44,91,78,160));
-            box(window,{250,y+3,3,13},accent);
+            box(window,{252,y-1,1009,LineHeight},Color(81,65,29));
+            box(window,{252,y-1,1009,1},amber);
+            ConvexShape arrow(3);
+            arrow.setPoint(0,{305,y+3});arrow.setPoint(1,{315,y+9});arrow.setPoint(2,{305,y+15});
+            arrow.setFillColor(amber);window.draw(arrow);
         }
         auto from=std::max(begin,selection.first),to=std::min(end+1,selection.second);
         if(to>from) {

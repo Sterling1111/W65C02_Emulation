@@ -65,7 +65,7 @@ void W65C02::connectBus(Bus* bus) {
 void W65C02::reset(word pc) {
     {
         std::lock_guard<std::mutex> lock(mutex);
-        PC = pc;
+        PC = instructionPC = pc;
         SP = 0xFF;
         PS.reset();
         PS.set(StatusFlags::U);

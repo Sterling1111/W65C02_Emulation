@@ -45,6 +45,7 @@ private:
     bool breakpointKeyHeld = false;
     std::string loadedSource;
     std::map<uint16_t, size_t> loadedLines;
+    std::map<size_t, std::vector<uint16_t>> loadedBreakpointAddresses;
     std::string buildName, buildSource, errorFile;
     int errorLine = 0;
     sf::Clock caretClock;
@@ -72,6 +73,7 @@ private:
     bool breakpointBound(size_t line);
     size_t nextSourceLine();
     std::string registerText();
+    std::string executionText();
     void releaseInputs();
     void updateInputs();
     void changeClock();

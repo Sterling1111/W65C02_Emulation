@@ -69,6 +69,9 @@ public:
     // Join the worker, execute one instruction synchronously, and stay paused.
     // WAI with no interrupt advances one idle clock; STP requires reset.
     StepResult step();
+    // Hold stateMutex() when the worker is running. WAI/STP stay on the
+    // instruction that suspended execution instead of highlighting its successor.
+    word debugAddress() const { return (WAIT || STOP) ? instructionPC : PC; }
     struct BreakpointState { bool hit; word address; };
     // Thread-safe debugger controls. Reset retains addresses and rearms them.
     void setBreakpoints(const std::vector<word>& addresses);

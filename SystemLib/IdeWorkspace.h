@@ -13,6 +13,7 @@ struct AsmBuildResult {
     std::string output;
     std::filesystem::path rom;
     std::map<uint16_t, size_t> sourceLines; // Main source only; one-based lines.
+    std::map<size_t, std::vector<uint16_t>> breakpointAddresses; // Includes label aliases.
 };
 class IdeWorkspace {
 public:
