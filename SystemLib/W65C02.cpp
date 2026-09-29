@@ -25,7 +25,7 @@ void W65C02::initializeOpcodeMatrix() {
                     {&CPU::LDY, &CPU::immediate }, {&CPU::LDA, &CPU::zeroPageIndexedIndirect }, {&CPU::LDX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::LDY, &CPU::zeroPageA   }, {&CPU::LDA, &CPU::zeroPageA  }, {&CPU::LDX, &CPU::zeroPageA  }, {&CPU::SMB2, &CPU::zeroPageC }, {&CPU::TAY, &CPU::impliedA    }, {&CPU::LDA, &CPU::immediate  }, {&CPU::TAX, &CPU::impliedA      }, {&CPU::XXX, &CPU::immediate  }, {&CPU::LDY, &CPU::absoluteA                  }, {&CPU::LDA, &CPU::absoluteA  }, {&CPU::LDX, &CPU::absoluteA  }, {&CPU::BBS2, &CPU::relativeB },
                     {&CPU::BCS, &CPU::relativeA }, {&CPU::LDA, &CPU::zeroPageIndirectIndexed }, {&CPU::LDA, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::LDY, &CPU::zeroPageXA  }, {&CPU::LDA, &CPU::zeroPageXA }, {&CPU::LDX, &CPU::zeroPageY  }, {&CPU::SMB3, &CPU::zeroPageC }, {&CPU::CLV, &CPU::impliedA    }, {&CPU::LDA, &CPU::absoluteY  }, {&CPU::TSX, &CPU::impliedA       }, {&CPU::XXX, &CPU::immediate  }, {&CPU::LDY, &CPU::absoluteXA                 }, {&CPU::LDA, &CPU::absoluteXA }, {&CPU::LDX, &CPU::absoluteY  }, {&CPU::BBS3, &CPU::relativeB },
                     {&CPU::CPY, &CPU::immediate }, {&CPU::CMP, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::CPY, &CPU::zeroPageA   }, {&CPU::CMP, &CPU::zeroPageA  }, {&CPU::DEC, &CPU::zeroPageB  }, {&CPU::SMB4, &CPU::zeroPageC }, {&CPU::INY, &CPU::impliedA    }, {&CPU::CMP, &CPU::immediate  }, {&CPU::DEX, &CPU::impliedA       }, {&CPU::WAI, &CPU::impliedB  }, {&CPU::CPY, &CPU::absoluteA                  }, {&CPU::CMP, &CPU::absoluteA  }, {&CPU::DEC, &CPU::absoluteB  }, {&CPU::BBS4, &CPU::relativeB },
-                    {&CPU::BNE, &CPU::relativeA }, {&CPU::CMP, &CPU::zeroPageIndirectIndexed }, {&CPU::CMP, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::XXX, &CPU::immediate   }, {&CPU::CMP, &CPU::zeroPageXA }, {&CPU::DEC, &CPU::zeroPageXB }, {&CPU::SMB5, &CPU::zeroPageC }, {&CPU::CLD, &CPU::impliedA    }, {&CPU::CMP, &CPU::absoluteY  }, {&CPU::PHX, &CPU::stackE         }, {&CPU::STP, &CPU::immediate  }, {&CPU::XXX, &CPU::immediate                  }, {&CPU::CMP, &CPU::absoluteXA }, {&CPU::DEC, &CPU::absoluteXB }, {&CPU::BBS5, &CPU::relativeB },
+                    {&CPU::BNE, &CPU::relativeA }, {&CPU::CMP, &CPU::zeroPageIndirectIndexed }, {&CPU::CMP, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::XXX, &CPU::immediate   }, {&CPU::CMP, &CPU::zeroPageXA }, {&CPU::DEC, &CPU::zeroPageXB }, {&CPU::SMB5, &CPU::zeroPageC }, {&CPU::CLD, &CPU::impliedA    }, {&CPU::CMP, &CPU::absoluteY  }, {&CPU::PHX, &CPU::stackE         }, {&CPU::STP, &CPU::impliedC   }, {&CPU::XXX, &CPU::immediate                  }, {&CPU::CMP, &CPU::absoluteXA }, {&CPU::DEC, &CPU::absoluteXB }, {&CPU::BBS5, &CPU::relativeB },
                     {&CPU::CPX, &CPU::immediate }, {&CPU::SBC, &CPU::zeroPageIndexedIndirect }, {&CPU::XXX, &CPU::immediate         }, {&CPU::XXX, &CPU::immediate }, {&CPU::CPX, &CPU::zeroPageA   }, {&CPU::SBC, &CPU::zeroPageA  }, {&CPU::INC, &CPU::zeroPageB  }, {&CPU::SMB6, &CPU::zeroPageC }, {&CPU::INX, &CPU::impliedA    }, {&CPU::SBC, &CPU::immediate  }, {&CPU::NOP, &CPU::impliedA       }, {&CPU::XXX, &CPU::immediate  }, {&CPU::CPX, &CPU::absoluteA                  }, {&CPU::SBC, &CPU::absoluteA  }, {&CPU::INC, &CPU::absoluteB  }, {&CPU::BBS6, &CPU::relativeB },
                     {&CPU::BEQ, &CPU::relativeA }, {&CPU::SBC, &CPU::zeroPageIndirectIndexed }, {&CPU::SBC, &CPU::zeroPageIndirect  }, {&CPU::XXX, &CPU::immediate }, {&CPU::XXX, &CPU::immediate   }, {&CPU::SBC, &CPU::zeroPageXA }, {&CPU::INC, &CPU::zeroPageXB }, {&CPU::SMB7, &CPU::zeroPageC }, {&CPU::SED, &CPU::impliedA    }, {&CPU::SBC, &CPU::absoluteY  }, {&CPU::PLX, &CPU::stackF         }, {&CPU::XXX, &CPU::immediate  }, {&CPU::XXX, &CPU::immediate                  }, {&CPU::SBC, &CPU::absoluteXA }, {&CPU::INC, &CPU::absoluteXB }, {&CPU::BBS7, &CPU::relativeB }
             };
@@ -45,7 +45,7 @@ void W65C02::initializeOpcodeMatrix() {
                     {"LDY", "immediate" }, {"LDA", "zeroPageIndexedIndirect" }, {"LDX", "immediate"         }, {"XXX", "immediate" }, {"LDY", "zeroPageA"   }, {"LDA", "zeroPageA"  }, {"LDX", "zeroPageA"  }, {"SMB2", "zeroPageC" }, {"TAY", "impliedA"    }, {"LDA", "immediate"  }, {"TAX", "impliedA"      }, {"XXX", "immediate"  }, {"LDY", "absoluteA"                  }, {"LDA", "absoluteA"  }, {"LDX", "absoluteA"  }, {"BBS2", "relativeB" },
                     {"BCS", "relativeA" }, {"LDA", "zeroPageIndirectIndexed" }, {"LDA", "zeroPageIndirect"  }, {"XXX", "immediate" }, {"LDY", "zeroPageXA"  }, {"LDA", "zeroPageXA" }, {"LDX", "zeroPageY"  }, {"SMB3", "zeroPageC" }, {"CLV", "impliedA"    }, {"LDA", "absoluteY"  }, {"TSX", "impliedA"       }, {"XXX", "immediate"  }, {"LDY", "absoluteXA"                 }, {"LDA", "absoluteXA" }, {"LDX", "absoluteY"  }, {"BBS3", "relativeB" },
                     {"CPY", "immediate" }, {"CMP", "zeroPageIndexedIndirect" }, {"XXX", "zeroPageIndirect"  }, {"XXX", "immediate" }, {"CPY", "zeroPageA"   }, {"CMP", "zeroPageA"  }, {"DEC", "zeroPageB"  }, {"SMB4", "zeroPageC" }, {"INY", "impliedA"    }, {"CMP", "immediate"  }, {"DEX", "impliedA"       }, {"WAI", "impliedB"  }, {"CPY", "absoluteA"                  }, {"CMP", "absoluteA"  }, {"DEC", "absoluteB"  }, {"BBS4", "relativeB" },
-                    {"BNE", "relativeA" }, {"CMP", "zeroPageIndirectIndexed" }, {"CMP", "zeroPageIndirect"  }, {"XXX", "immediate" }, {"XXX", "immediate"   }, {"CMP", "zeroPageXA" }, {"DEC", "zeroPageXB" }, {"SMB5", "zeroPageC" }, {"CLD", "impliedA"    }, {"CMP", "absoluteY"  }, {"PHX", "stackE"         }, {"STP", "immediate"  }, {"XXX", "immediate"                  }, {"CMP", "absoluteXA" }, {"DEC", "absoluteXB" }, {"BBS5", "relativeB" },
+                    {"BNE", "relativeA" }, {"CMP", "zeroPageIndirectIndexed" }, {"CMP", "zeroPageIndirect"  }, {"XXX", "immediate" }, {"XXX", "immediate"   }, {"CMP", "zeroPageXA" }, {"DEC", "zeroPageXB" }, {"SMB5", "zeroPageC" }, {"CLD", "impliedA"    }, {"CMP", "absoluteY"  }, {"PHX", "stackE"         }, {"STP", "impliedC"  }, {"XXX", "immediate"                  }, {"CMP", "absoluteXA" }, {"DEC", "absoluteXB" }, {"BBS5", "relativeB" },
                     {"CPX", "immediate" }, {"SBC", "zeroPageIndexedIndirect" }, {"XXX", "immediate"         }, {"XXX", "immediate" }, {"CPX", "zeroPageA"   }, {"SBC", "zeroPageA"  }, {"INC", "zeroPageB"  }, {"SMB6", "zeroPageC" }, {"INX", "impliedA"    }, {"SBC", "immediate"  }, {"NOP", "impliedA"       }, {"XXX", "immediate"  }, {"CPX", "absoluteA"                  }, {"SBC", "absoluteA"  }, {"INC", "absoluteB"  }, {"BBS6", "relativeB" },
                     {"BEQ", "relativeA" }, {"SBC", "zeroPageIndirectIndexed" }, {"SBC", "zeroPageIndirect"  }, {"XXX", "immediate" }, {"XXX", "immediate"   }, {"SBC", "zeroPageXA" }, {"INC", "zeroPageXB" }, {"SMB7", "zeroPageC" }, {"SED", "impliedA"    }, {"SBC", "absoluteY"  }, {"PLX", "stackF"         }, {"XXX", "immediate"  }, {"XXX", "immediate"                  }, {"SBC", "absoluteXA" }, {"INC", "absoluteXB" }, {"BBS7", "relativeB" }
             };
@@ -55,7 +55,7 @@ void W65C02::initializeOpcodeMatrix() {
 
 void W65C02::connectBus(Bus* bus) {
     this->bus = bus;
-    cycles.setTickCallback([this] { if (this->bus) this->bus->tick(); });
+    cycles.setTickCallback([this] { if (this->bus) this->bus->tick(cycles.getFrequencyHz()); });
 }
 
 /**
@@ -98,7 +98,7 @@ void W65C02::nonMaskableInterrupt() {
     readByte(PC);
     readByte(PC);
     pushWordToStack(PC);
-    pushByteToStack(PS.to_ulong());
+    pushByteToStack((PS.to_ulong() | 0x20) & ~0x10);
     PC = readByte(0xFFFA) | readByte(0xFFFB) << 8;
     PS.set(StatusFlags::I, true);
     PS.reset(StatusFlags::D);
@@ -279,11 +279,10 @@ __attribute__((unused)) word W65C02::impliedB(__attribute__((unused)) byte W65C0
     return 0;
 }
 
-//TODO - stop the clock
-__attribute__((unused)) word W65C02::impliedC(__attribute__((unused)) byte W65C02::* reg, Operation op) {
-    readByte(PC);
-    readByte(PC);
-    return 0;
+// Preserve the opcode + trailing read recorded in the physical-board STP traces.
+// The trailing read is not an operand fetch and must not advance PC.
+word W65C02::impliedC(__attribute__((unused)) byte W65C02::* reg, Operation op) {
+    return readByte(PC);
 }
 
 word W65C02::zeroPageIndirectIndexed(byte W65C02::* reg, Operation op) {
@@ -332,7 +331,6 @@ word W65C02::zeroPageY(byte W65C02::* reg, Operation op) {
     byte address{fetchByte()};
     byte effectiveAddress = address + Y;
     readByte(PC - 1);
-    cycles += (address + Y > 0xFF);
     if(reg) {
         writeByte(this->*reg, effectiveAddress);
         return 0;
@@ -403,21 +401,17 @@ word W65C02::relativeA(__attribute((unused)) byte W65C02::* reg, Operation op) {
     return PC;
 }
 
-//TODO - test the correctness of this function it is gautenteed to be wrong.
+// Bit branches encode zero-page address first, then signed displacement.
 word W65C02::relativeB(__attribute__((unused)) byte W65C02::* reg, Operation op) {
-    byte value{fetchByte()};
-    byte zeroPage{fetchByte()};
+    const byte zeroPage=fetchByte();
+    const byte data=readByte(zeroPage);
     readByte(zeroPage);
-    readByte(zeroPage);
-    readByte(zeroPage);
-    if(op(0)) {     //Then we should branch. the value passed to op is garbage. It isn't needed.
-        readByte(PC);
-        auto svalue = (sbyte)value;
-        if((PC & 0xFF) + svalue < 0 || (PC & 0xFF) + svalue > 0xFF)
-            readByte(PC);
-        return PC + svalue;
-    }
-    return PC;
+    const auto displacement=static_cast<sbyte>(fetchByte());
+    if(!op(data))return PC;
+    readByte(PC);
+    const word target=PC+displacement;
+    if((PC & 0xff00)!=(target & 0xff00))readByte(PC);
+    return target;
 }
 
 word W65C02::absoluteIndirect(byte W65C02::* reg, Operation op) {
@@ -494,11 +488,10 @@ void W65C02::execute(uint64_t numInstructionsToExecute) {
 void W65C02::executeOne(bool honorBreakpoints) {
     // PHI2 continues to clock peripherals while instruction execution is halted.
     if(STOP) { ++cycles; return; }
-    if(IRQB || (bus && bus->irqAsserted())) interruptRequest();
     if(NMIB) {
         nonMaskableInterrupt();
         NMIB = false;
-    }
+    } else if(IRQB || (bus && bus->irqAsserted())) interruptRequest();
     if(WAIT) { ++cycles; return; }
     if(honorBreakpoints) {
         const bool skip = skipBreakpointOnce && PC == breakpointAddress;
@@ -512,6 +505,7 @@ void W65C02::executeOne(bool honorBreakpoints) {
     }
     instructionPC = PC;
     byte opcodeNum = fetchByte();
+    instructionOpcode = opcodeNum;
     opcode = opCodeMatrix[opcodeNum];
     opcodeString = opCodeStringMatrix[opcodeNum];
     (this->*(opcode.instruction))(opcode.addressMode);
@@ -1069,7 +1063,27 @@ void W65C02::WAI(AddressMode addrMode) {
 }
 
 void W65C02::XXX(AddressMode addrMode) {
-    NOP(addrMode);
+    // WDC reserved NOPs have defined lengths and timing (datasheet Table 7-1).
+    const byte code=instructionOpcode;
+    switch(code) {
+    case 0x02:case 0x22:case 0x42:case 0x62:case 0x82:case 0xc2:case 0xe2:
+        fetchByte();break;
+    case 0x44: {
+        const byte address=fetchByte();readByte(address);break;
+    }
+    case 0x54:case 0xd4:case 0xf4: {
+        const byte address=fetchByte();readByte(PC-1);
+        readByte(static_cast<byte>(address+X));break;
+    }
+    case 0x5c: {
+        const word address=fetchWord();
+        for(int i=0;i<5;++i)readByte(address);
+        break;
+    }
+    case 0xdc:case 0xfc:
+        fetchWord();readByte(PC-1);break;
+    default:break; // One-byte, one-cycle NOP: opcode fetch is the whole instruction.
+    }
 }
 
 void W65C02::NZSetStatus(byte value) {

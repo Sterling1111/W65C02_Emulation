@@ -44,7 +44,7 @@ choose `hello_world.asm`. No separate assembler command is needed.
 - **Click the editor gutter / Ctrl+B** to toggle a breakpoint; **Ctrl+Shift+B** clears the file’s breakpoints.
 - **F10 / Step** executes one instruction; **F8** pauses/continues; **F9** restarts paused.
 - **+ / Ctrl+N** creates a program in `VASM/`.
-- **Ctrl+Tab** switches between Editor and Breadboard.
+- **Ctrl+Tab** cycles Editor, Breadboard and Terminal.
 - **CLOCK** cycles the running clock speed without a rebuild.
 - In the Breadboard tab, **R**, **I**, and **N** control reset, IRQ, and NMI.
 
@@ -77,6 +77,21 @@ timing drift. Rendering and input run independently. During `WAI` and `STP`, ins
 execution pauses while PHI2 continues to clock the VIA. A VIA interrupt can
 wake `WAI`; `STP` requires reset. The worker sleeps between clock batches. Timing is
 accurate on average when the host can keep up; individual cycles are batched.
+
+## WozMon and Microsoft BASIC
+
+Open the **Terminal** tab and click **Boot BASIC**. The app boots the bundled
+Ben Eater ROM through the W65C51N serial chip, answers the startup prompts, and
+shows `OK`. Try `PRINT 2+2`, or paste [the BASIC example](examples/basic/hello.bas).
+**Boot WozMon** opens the monitor for examining memory and loading/running machine
+code. Both boot buttons set the original firmware's clock to **1 MHz**.
+
+The serial expansion adds the ACIA at `$5000–$5003`, receive IRQs and VIA PA0
+flow control. **Ctrl+V** pastes; **Ctrl+C** sends BASIC BREAK. The ROM and its
+pinned source are included, so this works from a fresh Windows or Linux checkout
+without installing another assembler. Decimal-mode CPU arithmetic is intentionally
+not implemented. See [the serial/BASIC guide](docs/Serial-and-BASIC.md) for controls,
+examples, firmware provenance, modeling limits, and hardware validation details.
 
 ## Breadboard window
 

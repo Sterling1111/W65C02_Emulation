@@ -8,6 +8,8 @@ set(SYSTEM_LIB_SOURCES
         "PortBus.cpp"
         "W65C02.cpp"
         "W65C22.cpp"
+        "W65C51.cpp"
+        "SerialTerminal.cpp"
         "EEPROM.cpp"
         "RAM.cpp"
         "Bus.cpp"
@@ -34,6 +36,10 @@ target_compile_features(EmulatorIdeCore PUBLIC cxx_std_17)
 target_link_libraries(EmulatorIdeCore PUBLIC Threads::Threads)
 
 add_executable(main main.cpp LcdPanel.cpp BreadboardView.cpp EmulatorIde.cpp)
+configure_file(${CMAKE_SOURCE_DIR}/firmware/roms/wozmon-basic.bin
+               ${CMAKE_CURRENT_BINARY_DIR}/assets/wozmon-basic.bin COPYONLY)
+target_compile_definitions(main PRIVATE
+    IDE_FIRMWARE_PATH="${CMAKE_CURRENT_BINARY_DIR}/assets/wozmon-basic.bin")
 # Reuse the font shipped with SFML; no host font installation is needed.
 configure_file(${CMAKE_SOURCE_DIR}/SFML/examples/shader/resources/sansation.ttf
                ${CMAKE_CURRENT_BINARY_DIR}/assets/sansation.ttf COPYONLY)

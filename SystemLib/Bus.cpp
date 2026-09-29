@@ -10,7 +10,9 @@ void Bus::write(byte data, word address) {
         outFile << std::setfill('0') << std::setw(4) << std::hex << address << "  " << "W  ";
         outFile << std::setfill('0') << std::setw(2) << std::hex << static_cast<word>(data) << std::endl;
     }
-    if(address >= ramMin && address <= ramMax)
+    if(serial && address>=0x5000 && address<=0x5003)
+        serial->write(data,address-0x5000);
+    else if(address >= ramMin && address <= ramMax)
         ram[address - ramMin] = data;
     else if(address >= regMin && address <= regMax)
         registers.writeToRegisters(data, address - regMin);
@@ -19,6 +21,14 @@ void Bus::write(byte data, word address) {
     //EEPROM can't write so does nothing
 }
 byte Bus::read(word address) {
+    if(serial && address>=0x5000 && address<=0x5003) {
+        const byte data=serial->read(address-0x5000);
+        if(log && outFile.is_open()) {
+            outFile << std::setfill('0') << std::setw(4) << std::hex << address << "  R  "
+                    << std::setw(2) << static_cast<word>(data) << std::endl;
+        }
+        return data;
+    }
     if(address >= ramMin && address <= ramMax) {
         byte data{ram[address - ramMin]};
         if(log and outFile.is_open()) {
@@ -47,10 +57,16 @@ bool Bus::openProgramOutFile(const std::string& progOutFile) {
     } return true;
 }
 
-void Bus::tick() {
+void Bus::tick(double cpuHz) {
     if (regMin >= 0 && regMax >= regMin) registers.tick();
+    if(serial) {
+        const auto pins=registers.pins();
+        // Ben Eater BIOS drives VIA PA0 high to stop the remote sender.
+        serial->tick(cpuHz,!(pins.paOutputMask & pins.pa & 1));
+    }
 }
 
 bool Bus::irqAsserted() const {
-    return regMin >= 0 && regMax >= regMin && registers.irqAsserted();
+    return (serial && serial->irqAsserted()) ||
+           (regMin >= 0 && regMax >= regMin && registers.irqAsserted());
 }

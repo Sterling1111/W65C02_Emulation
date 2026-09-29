@@ -237,6 +237,7 @@ public:
             INS_ROR_ABSX = 0x7E;
 private:
     word instructionPC{};
+    byte instructionOpcode{};
     std::bitset<65536> breakpoints;
     bool breakpointHit{}, skipBreakpointOnce{};
     word breakpointAddress{};

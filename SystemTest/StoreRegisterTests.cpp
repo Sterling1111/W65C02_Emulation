@@ -139,7 +139,7 @@ TEST_F(StoreRegisterTests, STXZeroPageYCanStoreXRegisterIntoMemoryWhenItRaps) {
     ram[0x007F] = cpu.X + 1;
     auto psCopy = cpu.PS;
     auto pcCopy = cpu.PC;
-    constexpr dword EXPECTED_CYCLES = 5;
+    constexpr dword EXPECTED_CYCLES = 4;
     constexpr dword EXPECTED_BYTES = 2;
     cpu.execute();
 

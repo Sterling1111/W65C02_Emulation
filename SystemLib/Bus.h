@@ -6,6 +6,7 @@
 #include "RAM.h"
 #include "EEPROM.h"
 #include "W65C22.h"
+#include "W65C51.h"
 
 class Bus {
 public:
@@ -13,7 +14,9 @@ public:
         EEPROM& eeprom, sdword romMin, sdword romMax);
     void write(byte data, word address);
     byte read(word address);
-    void tick();
+    void tick(double cpuHz=1000000);
+    void connectSerial(W65C51& chip) { serial=&chip; }
+    bool hasSerial() const { return serial!=nullptr; }
     bool irqAsserted() const;
     bool openProgramOutFile(const std::string& progOutFile);
 
@@ -22,6 +25,7 @@ public:
     RAM& ram;
     EEPROM& eeprom;
     sdword ramMin, ramMax, regMin, regMax, romMin, romMax;
+    W65C51* serial{};
     bool log{false};
     std::ofstream outFile;
 };

@@ -17,6 +17,7 @@ public:
     PortBus portBus;
     W65C02 cpu{1};
     W65C22 registers{};
+    W65C51 acia{};
     RAM ram{};
     EEPROM eeprom{};
     Bus bus;

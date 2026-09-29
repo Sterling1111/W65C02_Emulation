@@ -247,6 +247,16 @@ void makeBoard(RenderTarget& t,const Font& f) {
     circle(t,{1020,722},7,Color(109,188,94));
     circle(t,{1018,720},3,Color(191,235,144));
 
+    // Serial expansion on the spare section of the third breadboard.
+    chip(t,f,598,611,255,61,28,"W65C51N","ACIA  /  5000-5003");
+    chip(t,f,927,613,160,57,16,"MAX232","RS-232 LINE DRIVER");
+    wire(t,{619,599},{590,563},{557,551},{521,516},teal,3);
+    wire(t,{650,599},{644,569},{656,557},{672,540},red,3);
+    wire(t,{681,684},{650,700},{659,770},{672,777},black,3);
+    wire(t,{833,684},{857,694},{885,686},{942,684},yellow,3);
+    wire(t,{817,599},{854,586},{888,591},{958,601},teal,3);
+    text(t,f,"SERIAL TERMINAL  /  TX + RX",887,691,11,ink);
+
     // The front-panel status is sampled from the existing CPU and VIA.
     rounded(t,50,819,1100,60,6,Color(22,28,30));
     text(t,f,"Click the board buttons or use R / I / N",51,884,10,Color(132,150,143));

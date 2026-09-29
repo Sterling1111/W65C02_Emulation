@@ -4,6 +4,7 @@
 #include "AsmDocument.h"
 #include "IdeWorkspace.h"
 #include "BreadboardView.h"
+#include "SerialTerminal.h"
 #include <SFML/Graphics.hpp>
 #include <future>
 #include <map>
@@ -16,7 +17,7 @@ public:
                 std::filesystem::path assembler, std::filesystem::path builds);
     int run();
 private:
-    enum class Tab { Editor, Board };
+    enum class Tab { Editor, Board, Terminal };
     enum class Dialog { Closed, NewProgram, Close, Reload, GoToLine };
     System& system;
     IdeWorkspace workspace;
@@ -49,6 +50,14 @@ private:
     std::string buildName, buildSource, errorFile;
     int errorLine = 0;
     sf::Clock caretClock;
+    SerialTerminal terminal;
+    size_t terminalScroll=0;
+    int basicStartup=0;
+    std::string bootOutput;
+    void bootFirmware(bool basic);
+    void pollSerial();
+    void sendSerial(const std::string& text);
+    void drawTerminal();
 
     AsmDocument* document();
     void selectProgram(const std::string& name);

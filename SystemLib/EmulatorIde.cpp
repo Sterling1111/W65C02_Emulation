@@ -54,7 +54,7 @@ std::string asciiClipboard() {
     std::string text;
     for(auto c:Clipboard::getString()) {
         if(c=='\n'||c=='\r'||c=='\t'||(c>=32 && c<127))text+=static_cast<char>(c);
-        else throw std::runtime_error("The assembly editor accepts ASCII text. Clipboard contains other characters.");
+        else throw std::runtime_error("Only ASCII text can be pasted. Clipboard contains other characters.");
     }
     return text;
 }
@@ -155,6 +155,7 @@ void EmulatorIde::build(bool runProgram,bool debug) {
     buildJob=std::async(std::launch::async,[executable,root,out,name,source]{return assembleProgram(executable,root,out,name,source);});
 }
 void EmulatorIde::loadAndRun(const AsmBuildResult& result) {
+    basicStartup=0;bootOutput.clear();
     releaseInputs();system.cpu.stop();
     system.loadProgram(result.rom.string());
     system.ram.initialize();system.lcd.powerOn();
@@ -447,6 +448,15 @@ void EmulatorIde::mouseDown(Vector2f p) {
     if(clockButton.contains(p)) {changeClock();return;}
     if(FloatRect(254,70,115,32).contains(p)) {setTab(Tab::Editor);if(paused)followInstruction();return;}
     if(FloatRect(377,70,135,32).contains(p)) {setTab(Tab::Board);return;}
+    if(FloatRect(520,70,112,32).contains(p)) {setTab(Tab::Terminal);return;}
+    if(tab==Tab::Terminal) {
+        if(FloatRect(254,111,137,32).contains(p))bootFirmware(false);
+        if(FloatRect(399,111,137,32).contains(p))bootFirmware(true);
+        if(FloatRect(547,111,80,32).contains(p) && !basicStartup)sendSerial(asciiClipboard());
+        if(FloatRect(635,111,80,32).contains(p))Clipboard::setString(terminal.text());
+        if(FloatRect(723,111,80,32).contains(p)) {terminal.clear();terminalScroll=0;}
+        if(p.x>=Side)return;
+    }
     if(FloatRect(186,87,36,30).contains(p)) {dialog=Dialog::NewProgram;dialogText.clear();dialogError.clear();return;}
     if(FloatRect(16,823,94,30).contains(p)) {refreshPrograms();status="Program list refreshed.";return;}
     if(FloatRect(122,823,100,30).contains(p)) {
@@ -492,6 +502,10 @@ void EmulatorIde::handle(const Event& event) {
         int amount=int(-event.mouseWheelScroll.delta*3);
         auto scroll=[&](size_t& value,size_t maximum){value=size_t(std::max<long long>(0,std::min<long long>(maximum,static_cast<long long>(value)+amount)));};
         if(p.x<Side)scroll(listTop,names.size()>19?names.size()-19:0);
+        else if(tab==Tab::Terminal) {
+            const auto maximum=terminal.lines().size()>33?terminal.lines().size()-33:0;
+            terminalScroll=size_t(std::max<long long>(0,std::min<long long>(maximum,static_cast<long long>(terminalScroll)-amount)));
+        }
         else if(tab==Tab::Editor && consoleArea.contains(p))scroll(consoleTop,console.size()>8?console.size()-8:0);
         else if(tab==Tab::Editor && document()) {
             if(event.mouseWheelScroll.wheel==Mouse::HorizontalWheel || Keyboard::isKeyPressed(Keyboard::LShift))
@@ -506,6 +520,8 @@ void EmulatorIde::handle(const Event& event) {
             if(dialog==Dialog::NewProgram || dialog==Dialog::GoToLine) {
                 if(dialogText.size()<64)dialogText+=char(c);
                 dialogError.clear();
+            } else if(dialog==Dialog::Closed && tab==Tab::Terminal && !basicStartup) {
+                sendSerial(std::string(1,char(c)));
             } else if(dialog==Dialog::Closed && tab==Tab::Editor) {
                 if(findOpen) {if(findText.size()<80)findText+=char(c);}
                 else if(document()) {document()->insert(std::string(1,char(c)));keepCursorVisible();}
@@ -539,9 +555,21 @@ void EmulatorIde::handle(const Event& event) {
         else stepInstruction();
         return;
     }
+    if(tab==Tab::Terminal && !(ctrl && k.code==Keyboard::Tab)) {
+        if(!basicStartup) {
+            if(ctrl && k.code==Keyboard::V)sendSerial(asciiClipboard());
+            else if(ctrl && k.code==Keyboard::C) {
+                if(k.shift)Clipboard::setString(terminal.text());
+                else { {std::lock_guard<std::mutex> lock(system.cpu.stateMutex());system.acia.cancelInput();}sendSerial(std::string(1,3)); }
+            } else if(k.code==Keyboard::Return)sendSerial("\r");
+            else if(k.code==Keyboard::Backspace)sendSerial(std::string(1,8));
+            else if(k.code==Keyboard::Escape)sendSerial(std::string(1,27));
+        }
+        return;
+    }
     if(ctrl && k.code==Keyboard::S) {saveCurrent();return;}
     if(ctrl && k.code==Keyboard::N) {dialog=Dialog::NewProgram;dialogText.clear();dialogError.clear();releaseInputs();return;}
-    if(ctrl && k.code==Keyboard::Tab) {setTab(tab==Tab::Editor?Tab::Board:Tab::Editor);if(tab==Tab::Editor && paused)followInstruction();return;}
+    if(ctrl && k.code==Keyboard::Tab) {setTab(tab==Tab::Editor?Tab::Board:tab==Tab::Board?Tab::Terminal:Tab::Editor);if(tab==Tab::Editor && paused)followInstruction();return;}
     if(k.code==Keyboard::F5) {build(true);return;}
     if(k.code==Keyboard::F6) {build(false);return;}
     if(tab==Tab::Editor) {
@@ -638,7 +666,7 @@ void EmulatorIde::drawBoard() {
         snapshot.pa=system.registers.portARead();snapshot.pb=system.registers.portBRead();
         snapshot.frequencyHz=system.cpu.cycles.getFrequencyHz();snapshot.started=system.firstReset;
         snapshot.stopped=system.cpu.STOP;snapshot.paused=paused;snapshot.waiting=system.cpu.WAIT;
-        snapshot.irq=system.cpu.IRQB||system.registers.irqAsserted();
+        snapshot.irq=system.cpu.IRQB||system.bus.irqAsserted();
     }
     label(window,uiFont,loaded?"LOADED  /  "+loadedName:"No ROM loaded. Choose a program and Build & Run.",263,113,14,muted);
     label(window,uiFont,"R  RESET     I  IRQ     N  NMI",1030,113,12,muted);
@@ -651,6 +679,63 @@ void EmulatorIde::drawBoard() {
         keyIrq?BreadboardView::Button::Irq:keyNmi?BreadboardView::Button::Nmi:BreadboardView::Button::Released;
     board->draw(window,snapshot,pressed);window.setView(savedView);
     if(loaded)label(window,codeFont,registerText(),266,857,12,paused?accent:muted);
+}
+void EmulatorIde::bootFirmware(bool basic) {
+    if(building)return;
+    releaseInputs();system.cpu.stop();
+    system.loadProgram(IDE_FIRMWARE_PATH);
+    system.ram.initialize();system.lcd.powerOn();
+    system.cpu.setCycleDuration(1); // The original BIOS transmit delay assumes 1 MHz.
+    system.cpu.setBreakpoints({});activeBreakpoints.clear();
+    loadedSource.clear();loadedLines.clear();loadedBreakpointAddresses.clear();
+    loaded=true;paused=false;loadedName=basic?"Microsoft BASIC / WozMon":"WozMon / serial BIOS";
+    terminal.clear();terminalScroll=0;bootOutput.clear();basicStartup=basic?1:0;
+    system.reset(false);system.cpu.resume();setTab(Tab::Terminal);
+    status=basic?"Starting Microsoft BASIC...":"WozMon: enter a hex address, or 8000R to enter BASIC.";
+}
+void EmulatorIde::sendSerial(const std::string& text) {
+    const auto input=SerialTerminal::input(text);
+    std::lock_guard<std::mutex> lock(system.cpu.stateMutex());
+    system.acia.queueInput(input);terminalScroll=0;
+}
+void EmulatorIde::pollSerial() {
+    std::string output;
+    {std::lock_guard<std::mutex> lock(system.cpu.stateMutex());output=system.acia.takeOutput();}
+    if(output.empty())return;
+    terminal.append(output);
+    if(!basicStartup)return;
+    bootOutput+=output;
+    if(bootOutput.size()>4096)bootOutput.erase(0,bootOutput.size()-4096);
+    if(basicStartup==1 && bootOutput.find("\\\r\n")!=std::string::npos) {
+        sendSerial("8000R\r");basicStartup=2;bootOutput.clear();
+    } else if(basicStartup==2 && bootOutput.find("MEMORY SIZE?")!=std::string::npos) {
+        sendSerial("\r");basicStartup=3;bootOutput.clear();
+    } else if(basicStartup==3 && bootOutput.find("TERMINAL WIDTH?")!=std::string::npos) {
+        sendSerial("80\r");basicStartup=4;bootOutput.clear();
+    } else if(basicStartup==4 && bootOutput.find("OK\r\n")!=std::string::npos) {
+        basicStartup=0;bootOutput.clear();status="BASIC ready. Type PRINT 2+2, or paste a BASIC program. Ctrl+C sends BREAK.";
+    }
+}
+void EmulatorIde::drawTerminal() {
+    button(window,uiFont,{254,111,137,32},"Boot WozMon",false,!building);
+    button(window,uiFont,{399,111,137,32},"Boot BASIC",true,!building);
+    button(window,uiFont,{547,111,80,32},"Paste");
+    button(window,uiFont,{635,111,80,32},"Copy");
+    button(window,uiFont,{723,111,80,32},"Clear");
+    label(window,uiFont,"W65C51N  /  SERIAL CONSOLE",843,119,13,muted);
+    box(window,{252,154,1012,657},Color(13,20,23));
+    const auto& lines=terminal.lines();
+    const size_t maximum=lines.size()>33?lines.size()-33:0;
+    terminalScroll=std::min(terminalScroll,maximum);
+    const size_t first=maximum-terminalScroll;
+    for(size_t i=0;i<33 && first+i<lines.size();++i)
+        label(window,codeFont,lines[first+i],267,164+i*19,15,Color(151,224,188));
+    if(!loaded)label(window,uiFont,"Boot WozMon or BASIC above to connect to the breadboard computer.",274,215,16,muted);
+    size_t queued;byte serialStatus;double baud;
+    {std::lock_guard<std::mutex> lock(system.cpu.stateMutex());queued=system.acia.pendingInput();serialStatus=system.acia.status();baud=system.acia.baudRate();}
+    label(window,uiFont,"Enter: submit   Ctrl+V: paste   Ctrl+C: BREAK   Esc: WozMon escape   Mouse wheel: scroll",263,824,13,muted);
+    label(window,codeFont,"ACIA $"+hexValue(serialStatus,2)+"   "+std::to_string(int(baud))+" baud   queued "+std::to_string(queued)+
+        (basicStartup?"   Starting BASIC...":paused?"   CPU paused":""),263,849,13,accent);
 }
 void EmulatorIde::drawDialog() {
     box(window,{0,0,Width,Height},Color(0,0,0,170));
@@ -698,12 +783,13 @@ void EmulatorIde::draw() {
     box(window,{377,70,135,32},tab==Tab::Board?Color(45,62,66):panel);
     label(window,uiFont,"Editor",281,76,15,tab==Tab::Editor?accent:muted);
     label(window,uiFont,"Breadboard",393,76,15,tab==Tab::Board?accent:muted);
-    label(window,uiFont,"Ctrl+Tab",534,80,11,muted);
+    box(window,{520,70,112,32},tab==Tab::Terminal?Color(45,62,66):panel);
+    label(window,uiFont,"Terminal",535,76,15,tab==Tab::Terminal?accent:muted);
     button(window,uiFont,debugButton,"Build & Debug  F7",false,!building&&document());
     button(window,uiFont,pauseButton,paused?"Continue  F8":"Pause  F8",false,loaded&&!building);
     button(window,uiFont,stepButton,"Step  F10",true,loaded&&!building);
     button(window,uiFont,restartButton,"Restart paused  F9",false,loaded&&!building);
-    if(tab==Tab::Editor)drawEditor();else drawBoard();
+    if(tab==Tab::Editor)drawEditor();else if(tab==Tab::Board)drawBoard();else drawTerminal();
     box(window,{0,874,Width,26},Color(32,46,49));
     label(window,uiFont,shorten(status,146),15,880,12,white);
     if(dialog!=Dialog::Closed)drawDialog();
@@ -720,6 +806,7 @@ int EmulatorIde::run() {
         }
         try {finishBuild();}catch(const std::exception& e) {building=false;status=e.what();setConsole(status);}
         checkBreakpoint();
+        pollSerial();
         if(window.isOpen())draw();
     }
     releaseInputs();system.cpu.stop();return 0;

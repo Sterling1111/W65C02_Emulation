@@ -233,7 +233,7 @@ void LD_ZPX_ZPY::TestLoadRegisterZeroPageY(byte opcode, byte yVal, word zpAddr, 
     ram[(byte)(zpAddr + yVal)] = valToLoad;
     auto psCopy = cpu.PS;
     auto PCCopy = cpu.PC;
-    dword EXPECTED_CYCLES = 4 + ((word)(zpAddr + yVal) > 0xFF);
+    dword EXPECTED_CYCLES = 4;
     constexpr dword EXPECTED_BYTES = 2;
     cpu.execute();
 

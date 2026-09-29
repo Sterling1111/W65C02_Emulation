@@ -1,7 +1,7 @@
 # W65C02 Studio
 
 A small desktop IDE for this emulator. It uses the existing SFML window and
-single W65C02 execution worker. The Editor and Breadboard tabs share the same
+single W65C02 execution worker. The Editor, Breadboard and Terminal tabs share the same
 application; assembly runs on a background task so builds do not freeze input
 or the currently running program.
 
@@ -124,7 +124,7 @@ programs are loaded. Building with F6 alone does not load a new ROM.
 | Ctrl+G | Go to a line. |
 | Gutter click / Ctrl+B | Toggle a breakpoint. |
 | Ctrl+Shift+B | Clear breakpoints in the selected file. |
-| Ctrl+Tab | Switch Editor / Breadboard. |
+| Ctrl+Tab | Cycle Editor / Breadboard / Terminal. |
 | Refresh | Rescan the list of files in the workspace. |
 | Reload | Confirm replacement of the selected buffer with its disk contents. |
 
@@ -186,3 +186,10 @@ loop hits, reset rearming, stepping/continuing, live changes, IRQ entry, and
 frozen clocks. The full regression suite includes these tests. Window checks also exercise
 editing/saving, both tabs, build/run with live LCD output, failed-build display,
 new files, and the unsaved-change dialog using temporary source copies.
+
+## Serial firmware
+
+The Terminal tab provides **Boot WozMon** and **Boot BASIC**, serial text input,
+clipboard paste, and BASIC BREAK. See [Serial and BASIC](Serial-and-BASIC.md).
+Assembly programs can access the ACIA at `$5000–$5003`; `serial_echo.asm` is a
+small polling example. Booting firmware preserves unsaved assembly buffers.
