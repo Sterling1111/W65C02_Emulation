@@ -37,7 +37,8 @@ add_executable( SystemTest ${TEST_SOURCES} 	)
 add_dependencies( SystemTest SystemLib )
 target_link_libraries(SystemTest gtest SystemLib EmulatorIdeCore)
 target_compile_definitions(SystemTest PRIVATE
-    TEST_SERIAL_ROM="${CMAKE_SOURCE_DIR}/firmware/roms/wozmon-basic.bin")
+    TEST_SERIAL_ROM="${CMAKE_SOURCE_DIR}/firmware/roms/wozmon-basic.bin"
+    TEST_BASIC_LCD="${CMAKE_SOURCE_DIR}/examples/basic/lcd.bas")
 if(WIN32)
     target_compile_definitions(SystemTest PRIVATE TEST_VASM_PATH="${CMAKE_SOURCE_DIR}/VASM/vasm6502_oldstyle.exe")
 else()

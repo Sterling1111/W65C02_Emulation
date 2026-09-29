@@ -42,6 +42,28 @@ Its `LOAD` and `SAVE` BIOS routines are upstream stubs: persistent cassette/disk
 storage is not implemented. Keep BASIC source in host text files and paste it
 back into the terminal. Use **Boot WozMon** to leave BASIC and start a fresh board.
 
+## Use the LCD from BASIC
+
+`PRINT` writes to the serial terminal. The bundled ROM has no built-in LCD
+command, but BASIC can drive the existing LCD through the VIA using `PEEK` and
+`POKE`.
+
+Click **Boot BASIC**, wait for `OK`, then paste the contents of
+[`examples/basic/lcd.bas`](../examples/basic/lcd.bas) into the terminal. The file
+includes `RUN`. Wait for `OK`, then open **Breadboard** to see:
+
+```text
+HELLO FROM BASIC
+ON THE 65C02
+```
+
+The example initializes the LCD in 8-bit mode, polls its busy flag, and writes
+both rows. Port B at `$6000` (24576) carries the data; Port A at `$6001` (24577)
+uses bits 7/6/5 for E/RW/RS. The direction registers are `$6002` and `$6003`.
+The subroutine at line 1000 sends `V` as a command (`C=0`) or character (`C=32`);
+line 2000 writes `M$`. Low Port A bits are preserved for serial flow control.
+Terminal input and `PRINT` still work after the example finishes.
+
 ## Try WozMon
 
 Click **Boot WozMon**. Its initial prompt is a backslash. Enter:

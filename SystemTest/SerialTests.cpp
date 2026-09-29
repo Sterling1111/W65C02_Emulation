@@ -2,6 +2,8 @@
 #include "System.h"
 #include "SerialTerminal.h"
 #include <string>
+#include <fstream>
+#include <sstream>
 
 namespace {
 void clocks(W65C51& acia,unsigned count,bool ready=true) {
@@ -119,4 +121,34 @@ TEST_F(SerialFirmware, LongPasteUsesBiosFlowControlAndBreakReturnsToPrompt) {
     send("10 GOTO 10\rRUN\r");s.cpu.execute(100000);s.acia.takeOutput();
     send(std::string(1,3));ASSERT_TRUE(until("\r\nOK\r\n"))<<output;
     EXPECT_NE(output.find("BREAK"),std::string::npos)<<output;
+}
+
+TEST_F(SerialFirmware, BasicLcdExampleDrivesBothDisplayRowsThroughVia) {
+    basic();ASSERT_FALSE(HasFatalFailure());
+    std::ifstream file(TEST_BASIC_LCD);
+    ASSERT_TRUE(file.is_open());
+    std::ostringstream program;program<<file.rdbuf();
+    send(SerialTerminal::input(program.str()));
+    ASSERT_TRUE(until("\r\nOK\r\n"))<<output;
+    ASSERT_EQ(output.find("ERROR"),std::string::npos)<<output;
+
+    // Compare the rendered display against the intended two lines, including
+    // blank cells. The actual display was driven only by BASIC on the CPU.
+    LCD expected;
+    auto ready=[&] {expected.advanceTime(std::chrono::milliseconds(10));};
+    ready();expected.sendCommand(0x38);
+    ready();expected.sendCommand(0x0c);
+    ready();expected.sendCommand(0x06);
+    ready();expected.sendCommand(0x80);
+    for(char c:std::string("HELLO FROM BASIC")) {ready();expected.writeByte(c);}
+    ready();expected.sendCommand(0xc0);
+    for(char c:std::string("ON THE 65C02")) {ready();expected.writeByte(c);}
+    expected.updatePixels();s.lcd.updatePixels();
+    for(int y=0;y<expected.numPixelsY();++y)
+        for(int x=0;x<expected.numPixelsX();++x)
+            ASSERT_EQ(s.lcd.pixelState(x,y),expected.pixelState(x,y))<<x<<","<<y;
+    EXPECT_EQ(s.registers.readFromRegisters(W65C22::DDRA)&1,1);
+    EXPECT_FALSE(s.acia.status()&4);
+    send("PRINT 2+2\r");ASSERT_TRUE(until("\r\nOK\r\n"))<<output;
+    EXPECT_NE(output.find(" 4 "),std::string::npos)<<output;
 }
