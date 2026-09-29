@@ -1,4 +1,6 @@
 #include "EmulatorIde.h"
+#include "AppIcon.h"
+#include <SFML/Graphics/Image.hpp>
 #include <SFML/Window/Clipboard.hpp>
 #include <algorithm>
 #include <cctype>
@@ -100,6 +102,11 @@ EmulatorIde::EmulatorIde(System& boardSystem,std::filesystem::path programs,
     float scale=std::min(1.f,std::min(std::max(320.f,float(desktop.width)-40)/Width,
                                     std::max(240.f,float(desktop.height)-100)/Height));
     window.create(VideoMode(unsigned(Width*scale),unsigned(Height*scale)),"W65C02 Studio",Style::Default);
+    sf::Image icon;
+    if (icon.loadFromMemory(AppIcon::png, sizeof(AppIcon::png))) {
+        const auto size = icon.getSize();
+        window.setIcon(size.x, size.y, icon.getPixelsPtr());
+    }
     fitWindow(window);
     window.setFramerateLimit(75);
     window.setKeyRepeatEnabled(true);

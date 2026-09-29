@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=W65C02 Studio
+Comment=65C02 computer emulator and assembly IDE
+Exec="$<TARGET_FILE:main>"
+Icon=@APP_ICON_PNG@
+Terminal=false
+Categories=Development;IDE;
+StartupWMClass=W65C02 Studio

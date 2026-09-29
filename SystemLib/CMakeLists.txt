@@ -36,6 +36,27 @@ target_compile_features(EmulatorIdeCore PUBLIC cxx_std_17)
 target_link_libraries(EmulatorIdeCore PUBLIC Threads::Threads)
 
 add_executable(main main.cpp LcdPanel.cpp BreadboardView.cpp EmulatorIde.cpp)
+
+# Embed the window icon so it does not depend on the working directory.
+set(APP_ICON_PNG "${CMAKE_SOURCE_DIR}/assets/icons/cpu.png")
+set(APP_ICON_ICO "${CMAKE_SOURCE_DIR}/assets/icons/cpu.ico")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+             "${APP_ICON_PNG}" "${APP_ICON_ICO}")
+file(READ "${APP_ICON_PNG}" APP_ICON_HEX HEX)
+string(REGEX REPLACE "(..)" "0x\\1," APP_ICON_BYTES "${APP_ICON_HEX}")
+configure_file(AppIcon.h.in generated/AppIcon.h @ONLY)
+target_include_directories(main PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
+if(WIN32)
+    enable_language(RC)
+    configure_file(AppIcon.rc.in generated/AppIcon.rc @ONLY)
+    target_sources(main PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated/AppIcon.rc")
+    set_source_files_properties("${CMAKE_CURRENT_BINARY_DIR}/generated/AppIcon.rc"
+        PROPERTIES OBJECT_DEPENDS "${APP_ICON_ICO}")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    configure_file(w65c02-studio.desktop.in generated/w65c02-studio.desktop.in @ONLY)
+    file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/w65c02-studio.desktop"
+         INPUT "${CMAKE_CURRENT_BINARY_DIR}/generated/w65c02-studio.desktop.in")
+endif()
 configure_file(${CMAKE_SOURCE_DIR}/firmware/roms/wozmon-basic.bin
                ${CMAKE_CURRENT_BINARY_DIR}/assets/wozmon-basic.bin COPYONLY)
 target_compile_definitions(main PRIVATE
