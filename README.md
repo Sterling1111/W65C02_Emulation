@@ -160,6 +160,10 @@ cd build/test-fixtures
 
 ### Windows 11 application
 
-The portable release is `dist/W65C02-Studio-Windows-11-x64.zip`. Extract the
-whole folder and launch `W65C02-Studio.exe`; no CLion or compiler is needed.
+[Download the Windows 11 app (64-bit ZIP)](https://github.com/Sterling1111/W65C02_Emulation/releases/latest/download/W65C02-Studio-Windows-11-x64.zip).
+
+Extract the whole folder and launch `W65C02-Studio.exe`; no CLion or compiler
+is needed. The portable build includes the assembler, fonts, WozMon/BASIC ROM,
+and examples. It is unsigned. Checksums and release notes are on the
+[releases page](https://github.com/Sterling1111/W65C02_Emulation/releases/latest).
 See [Windows packaging and validation](packaging/BUILD.md) for rebuilding.
