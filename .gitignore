@@ -19,3 +19,7 @@ SystemTest/SystemTest
 
 # Out-of-source builds and local dependencies
 /build/
+
+# Native Windows builds and release archives
+/build-windows/
+/dist/

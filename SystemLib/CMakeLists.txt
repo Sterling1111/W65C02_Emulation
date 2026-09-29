@@ -21,7 +21,9 @@ set(SYSTEM_LIB_SOURCES
 # On Linux, use the installed SFML 2 development package.
 if(WIN32)
     set(SFML_STATIC_LIBRARIES true)
-    set(SFML_DIR ${CMAKE_SOURCE_DIR}/SFML/lib/cmake/SFML)
+    if(NOT SFML_DIR)
+        set(SFML_DIR ${CMAKE_SOURCE_DIR}/SFML/lib/cmake/SFML)
+    endif()
 endif()
 find_package(Threads REQUIRED)
 find_package(SFML 2 COMPONENTS system window graphics REQUIRED)
@@ -35,7 +37,11 @@ target_include_directories(EmulatorIdeCore PUBLIC ${PROJECT_SOURCE_DIR})
 target_compile_features(EmulatorIdeCore PUBLIC cxx_std_17)
 target_link_libraries(EmulatorIdeCore PUBLIC Threads::Threads)
 
-add_executable(main main.cpp LcdPanel.cpp BreadboardView.cpp EmulatorIde.cpp)
+add_executable(main main.cpp AppPaths.cpp WindowTheme.cpp LcdPanel.cpp BreadboardView.cpp EmulatorIde.cpp)
+if(W65C02_PORTABLE)
+    target_compile_definitions(main PRIVATE W65C02_PORTABLE)
+    set_target_properties(main PROPERTIES OUTPUT_NAME "W65C02-Studio")
+endif()
 
 # Embed the window icon so it does not depend on the working directory.
 set(APP_ICON_PNG "${CMAKE_SOURCE_DIR}/assets/icons/cpu.png")
@@ -59,13 +65,9 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 configure_file(${CMAKE_SOURCE_DIR}/firmware/roms/wozmon-basic.bin
                ${CMAKE_CURRENT_BINARY_DIR}/assets/wozmon-basic.bin COPYONLY)
-target_compile_definitions(main PRIVATE
-    IDE_FIRMWARE_PATH="${CMAKE_CURRENT_BINARY_DIR}/assets/wozmon-basic.bin")
-# Reuse the font shipped with SFML; no host font installation is needed.
-configure_file(${CMAKE_SOURCE_DIR}/SFML/examples/shader/resources/sansation.ttf
+# Bundle the OFL release of Sansation; no host font installation is needed.
+configure_file(${CMAKE_SOURCE_DIR}/assets/fonts/Sansation-Regular.ttf
                ${CMAKE_CURRENT_BINARY_DIR}/assets/sansation.ttf COPYONLY)
-target_compile_definitions(main PRIVATE
-    BREADBOARD_FONT_PATH="${CMAKE_CURRENT_BINARY_DIR}/assets/sansation.ttf")
 configure_file(${CMAKE_SOURCE_DIR}/assets/fonts/DejaVuSansMono.ttf
                ${CMAKE_CURRENT_BINARY_DIR}/assets/DejaVuSansMono.ttf COPYONLY)
 if(WIN32)
@@ -74,14 +76,13 @@ else()
     set(IDE_ASSEMBLER ${CMAKE_SOURCE_DIR}/VASM/vasm6502_oldstyle)
 endif()
 target_compile_definitions(main PRIVATE
-    IDE_CODE_FONT_PATH="${CMAKE_CURRENT_BINARY_DIR}/assets/DejaVuSansMono.ttf"
     IDE_PROGRAMS_PATH="${CMAKE_SOURCE_DIR}/VASM"
     IDE_ASSEMBLER_PATH="${IDE_ASSEMBLER}"
     IDE_BUILDS_PATH="${CMAKE_BINARY_DIR}/ide")
 target_link_libraries(main PRIVATE SystemLib EmulatorIdeCore sfml-graphics sfml-window sfml-system)
 
 if(WIN32)
-    target_link_libraries(main PRIVATE -mwindows -static -static-libstdc++ -static-libgcc)
+    target_link_libraries(main PRIVATE dwmapi -mwindows -static -static-libstdc++ -static-libgcc)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(X11 REQUIRED)
     target_link_libraries(main PRIVATE X11::X11)

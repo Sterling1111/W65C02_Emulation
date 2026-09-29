@@ -1,5 +1,7 @@
 #include "EmulatorIde.h"
 #include "AppIcon.h"
+#include "AppPaths.h"
+#include "WindowTheme.h"
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/Window/Clipboard.hpp>
 #include <algorithm>
@@ -102,6 +104,7 @@ EmulatorIde::EmulatorIde(System& boardSystem,std::filesystem::path programs,
     float scale=std::min(1.f,std::min(std::max(320.f,float(desktop.width)-40)/Width,
                                     std::max(240.f,float(desktop.height)-100)/Height));
     window.create(VideoMode(unsigned(Width*scale),unsigned(Height*scale)),"W65C02 Studio",Style::Default);
+    applyWindowTheme(window);
     sf::Image icon;
     if (icon.loadFromMemory(AppIcon::png, sizeof(AppIcon::png))) {
         const auto size = icon.getSize();
@@ -110,7 +113,7 @@ EmulatorIde::EmulatorIde(System& boardSystem,std::filesystem::path programs,
     fitWindow(window);
     window.setFramerateLimit(75);
     window.setKeyRepeatEnabled(true);
-    if(!uiFont.loadFromFile(BREADBOARD_FONT_PATH) || !codeFont.loadFromFile(IDE_CODE_FONT_PATH))
+    if(!uiFont.loadFromFile(AppPaths::asset("sansation.ttf").string()) || !codeFont.loadFromFile(AppPaths::asset("DejaVuSansMono.ttf").string()))
         throw std::runtime_error("Cannot load IDE fonts from the build assets directory");
     board.reset(new BreadboardView);
     snapshot.lcdWidth=system.lcd.numPixelsX();snapshot.lcdHeight=system.lcd.numPixelsY();
@@ -491,7 +494,8 @@ void EmulatorIde::handle(const Event& event) {
     if(event.type==Event::KeyReleased && event.key.code==Keyboard::B)breakpointKeyHeld=false;
     if(closingAfterBuild)return;
     if(event.type==Event::Closed) {closeRequested();return;}
-    if(event.type==Event::LostFocus) {breakpointKeyHeld=false;releaseInputs();dragging=false;for(auto& key:debugKeyHeld)key=false;return;}
+    if(event.type==Event::GainedFocus) {applyWindowTheme(window);return;}
+    if(event.type==Event::LostFocus) {applyWindowTheme(window,false);breakpointKeyHeld=false;releaseInputs();dragging=false;for(auto& key:debugKeyHeld)key=false;return;}
     if(event.type==Event::Resized) {fitWindow(window);return;}
     if(event.type==Event::MouseButtonReleased && event.mouseButton.button==Mouse::Left) {
         dragging=false;mouseButton=BreadboardView::Button::Released;updateInputs();return;
@@ -690,7 +694,7 @@ void EmulatorIde::drawBoard() {
 void EmulatorIde::bootFirmware(bool basic) {
     if(building)return;
     releaseInputs();system.cpu.stop();
-    system.loadProgram(IDE_FIRMWARE_PATH);
+    system.loadProgram(AppPaths::asset("wozmon-basic.bin").string());
     system.ram.initialize();system.lcd.powerOn();
     system.cpu.setCycleDuration(1); // The original BIOS transmit delay assumes 1 MHz.
     system.cpu.setBreakpoints({});activeBreakpoints.clear();

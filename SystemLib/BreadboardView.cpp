@@ -1,3 +1,4 @@
+#include "AppPaths.h"
 #include "BreadboardView.h"
 #include <algorithm>
 #include <cmath>
@@ -288,7 +289,7 @@ std::string frequency(double hz) {
 } // namespace
 
 BreadboardView::BreadboardView() {
-    if(!font.loadFromFile(BREADBOARD_FONT_PATH))
+    if(!font.loadFromFile(AppPaths::asset("sansation.ttf").string()))
         throw std::runtime_error("Could not load the breadboard label font");
     if(!background.create(Width,Height))
         throw std::runtime_error("Could not create the breadboard render texture");

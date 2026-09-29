@@ -157,3 +157,9 @@ cd build/test-fixtures
 ```
 
 [Original Linux build video](https://youtu.be/6M1S0CATJAM)
+
+### Windows 11 application
+
+The portable release is `dist/W65C02-Studio-Windows-11-x64.zip`. Extract the
+whole folder and launch `W65C02-Studio.exe`; no CLion or compiler is needed.
+See [Windows packaging and validation](packaging/BUILD.md) for rebuilding.
