@@ -6,6 +6,7 @@
 #include <chrono>
 #include <fstream>
 #include <filesystem>
+#include <sstream>
 
 namespace fs=std::filesystem;
 namespace {
@@ -129,6 +130,48 @@ TEST_F(IdeFiles, RomLoaderRejectsInvalidFilesAndClearsTailOnShorterReplacement) 
     EXPECT_EQ(rom[0],0x42);EXPECT_EQ(rom[32767],0x42);
     writeFile(root/"short.bin",std::string(1,char(0xdb)));rom.loadProgram((root/"short.bin").string());
     EXPECT_EQ(rom[0],0xdb);EXPECT_EQ(rom[1],0xea);EXPECT_EQ(rom[32767],0xea);
+}
+
+TEST(AsmListing, LegacyWindowsListingMapsSignExtendedAddressesAndExcludesIncludes) {
+    // vasm 1.8g emits source records followed by byte records, then a file table.
+    std::istringstream listing(
+        "F00:0001           .org $8000\r\n"
+        "F00:0002       reset:\r\n"
+        "F00:0003           lda #$42\r\n"
+        "               S01:FFFFFFFFFFFF8000:  A9 42\r\n"
+        "F00:0004           .include \"part.inc\"\r\n"
+        "F01:0001           nop\r\n"
+        "               S01:FFFFFFFFFFFF8002:  EA\r\n"
+        "F00:0005           sta $10\r\n"
+        "               S01:00008003:  85 10\r\n"
+        "F00:0006           stp\r\n"
+        "               S01:FFFFFFFFFFFF8005:  DB\r\n"
+        "F00:0007           .word reset,reset,reset\r\n"
+        "               S02:FFFFFFFFFFFFFFFA:  00 80\r\n"
+        "               S02:FFFFFFFFFFFFFFFC:  00 80\r\n"
+        "               S02:FFFFFFFFFFFFFFFE:  00 80\r\n"
+        "\r\nSections:\r\nS01  seg8000\r\nS02  segfffa\r\n"
+        "\r\nSources:\r\nF00  C:\\program files\\step.asm\r\nF01  part.inc\r\n"
+        "\r\nSymbols:\r\nreset EXPR(-32768=0x8000) ABS\r\n");
+    const std::map<uint16_t,size_t> expected={{0x8000,3},{0x8003,5},{0x8005,6},
+                                            {0xfffa,7},{0xfffc,7},{0xfffe,7}};
+    EXPECT_EQ(parseAsmListing(listing,"step.asm"),expected);
+}
+TEST(AsmListing, CurrentListingMapsMainSourceAndExcludesIncludes) {
+    std::istringstream listing(
+        "Source: \"C:\\program files\\step.asm\"\r\n"
+        "00:8000 A942            \t     3:     lda #$42\r\n"
+        "Source: \"part.inc\"\r\n"
+        "00:8002 EA              \t     1:     nop\r\n"
+        "Source: \"C:\\program files\\step.asm\"\r\n"
+        "00:8003 8510            \t     5:     sta $10\r\n");
+    const std::map<uint16_t,size_t> expected={{0x8000,3},{0x8003,5}};
+    EXPECT_EQ(parseAsmListing(listing,"step.asm"),expected);
+}
+TEST(AsmListing, UnknownLegacySourceRemainsUnmapped) {
+    std::istringstream listing("F01:0003    nop\n               S01:FFFFFFFFFFFF8000:  EA\n"
+                               "Sources:\nF00  step.asm\nF01  part.inc\n");
+    EXPECT_TRUE(parseAsmListing(listing,"step.asm").empty());
 }
 
 TEST_F(IdeFiles, DebugListingMapsInstructionAddressesToMainSourceLines) {

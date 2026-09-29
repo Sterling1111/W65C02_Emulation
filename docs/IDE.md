@@ -164,8 +164,11 @@ directory, it is loaded and can be started with **R** in the Breadboard tab.
 Build & Run does not overwrite that file; it uses its own generated ROM.
 
 The bundled assembler is selected for Windows or Linux at configure time.
-Linux's bundled executable is x86-64. Linux/WSL is the validated platform for
-this change. Label fonts come from the bundled SFML resources; the monospace
+Linux's bundled executable is x86-64. Source mapping supports both the legacy listing from the bundled Windows
+vasm 1.8g and the newer Linux listing. Earlier revisions parsed only the newer
+format, so Windows builds could assemble successfully while breakpoints stayed
+pending and the execution highlight was missing. Rebuild the `main` target after
+updating the source. Full window validation has been performed on Linux/WSL. Label fonts come from the bundled SFML resources; the monospace
 font and its license are in `assets/fonts/`. No system font or new GUI toolkit
 installation is needed. Source/build/asset paths are set by CMake for this
 checkout; this is not a standalone relocatable installer.

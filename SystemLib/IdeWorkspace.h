@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <cstdint>
+#include <iosfwd>
 
 struct AsmBuildResult {
     bool success = false;
@@ -29,6 +30,8 @@ private:
     std::filesystem::path root;
     std::filesystem::path pathFor(const std::string& name) const;
 };
+// Accept both the current and legacy (bundled Windows vasm) listing formats.
+std::map<uint16_t, size_t> parseAsmListing(std::istream& listing, const std::string& filename);
 AsmBuildResult assembleProgram(const std::filesystem::path& assembler,
                               const std::filesystem::path& programDirectory,
                               const std::filesystem::path& buildDirectory,

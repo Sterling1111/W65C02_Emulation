@@ -143,6 +143,50 @@ std::string IdeWorkspace::starterProgram() {
            "    stp\n\nnmi:\nirq:\n    rti\n\n    .org $fffa\n"
            "    .word nmi\n    .word reset\n    .word irq\n";
 }
+std::map<uint16_t, size_t> parseAsmListing(std::istream& listing,const std::string& filename) {
+    std::map<uint16_t, size_t> result;
+    // Legacy listings put the source-file table AFTER the encoded lines.
+    struct LegacyEntry { unsigned file; size_t line; uint16_t address; };
+    std::vector<LegacyEntry> legacyEntries;
+    std::map<unsigned, std::string> legacySources;
+    unsigned sourceId=0;size_t sourceLine=0;
+    bool mainSource=false,inSources=false;
+    const std::regex sourceHeader("^Source: \"(.*)\"");
+    const std::regex encodedLine("^[0-9A-Fa-f]+:([0-9A-Fa-f]{4})[ \t]+[0-9A-Fa-f]+[ \t]+([0-9]+):");
+    const std::regex legacyLine(R"(^F([0-9]+):([0-9]+)\s)");
+    const std::regex legacyAddress(R"(^\s+S[0-9]+:([0-9A-Fa-f]{4,16}):\s+[0-9A-Fa-f]{2}(?:\s|$))");
+    const std::regex legacySource(R"(^F([0-9]+)\s+(.+)$)");
+    auto basename=[](const std::string& path) {
+        // Listings may contain Windows paths even when parsed on Linux.
+        return path.substr(path.find_last_of("/\\")+1);
+    };
+    std::string line;
+    while(std::getline(listing,line)) {
+        if(!line.empty() && line.back()=='\r')line.pop_back();
+        std::smatch match;
+        if(line=="Sources:") {inSources=true;sourceLine=0;continue;}
+        if(line=="Sections:" || line=="Symbols:") {inSources=false;sourceLine=0;continue;}
+        if(inSources && std::regex_search(line,match,legacySource))
+            legacySources[std::stoul(match[1])]=basename(match[2]);
+        else if(std::regex_search(line,match,sourceHeader))
+            mainSource=basename(match[1])==filename;
+        else if(mainSource && std::regex_search(line,match,encodedLine))
+            result[static_cast<uint16_t>(std::stoul(match[1],nullptr,16))]=std::stoul(match[2]);
+        else if(std::regex_search(line,match,legacyLine)) {
+            sourceId=std::stoul(match[1]);sourceLine=std::stoul(match[2]);
+        } else if(sourceLine && std::regex_search(line,match,legacyAddress)) {
+            // vasm 1.8g sign-extends ROM addresses, e.g. FFFFFFFFFFFF8000.
+            const auto address=match[1].str();
+            legacyEntries.push_back({sourceId,sourceLine,
+                static_cast<uint16_t>(std::stoul(address.substr(address.size()-4),nullptr,16))});
+        }
+    }
+    for(const auto& entry:legacyEntries) {
+        auto source=legacySources.find(entry.file);
+        if(source!=legacySources.end() && source->second==filename)result[entry.address]=entry.line;
+    }
+    return result;
+}
 AsmBuildResult assembleProgram(const fs::path& assembler,const fs::path& programDirectory,
                               const fs::path& buildDirectory,const std::string& filename,const std::string& source) {
     AsmBuildResult result;
@@ -168,16 +212,10 @@ AsmBuildResult assembleProgram(const fs::path& assembler,const fs::path& program
         if(reset<0x8000) throw std::runtime_error("The reset vector must point into ROM ($8000-$ffff).");
         // Listing addresses come from the assembled snapshot, never from an
         // edited buffer. Included-source sections are deliberately excluded.
-        std::ifstream lines(listing);std::string line;bool mainSource=false;
-        const std::regex sourceHeader("^Source: \"(.*)\"");
-        const std::regex encodedLine("^[0-9A-Fa-f]+:([0-9A-Fa-f]{4})[ \t]+[0-9A-Fa-f]+[ \t]+([0-9]+):");
-        while(std::getline(lines,line)) {
-            std::smatch match;
-            if(std::regex_search(line,match,sourceHeader))
-                mainSource=fs::path(match[1].str()).filename()==filename;
-            else if(mainSource && std::regex_search(line,match,encodedLine))
-                result.sourceLines[static_cast<uint16_t>(std::stoul(match[1],nullptr,16))]=std::stoul(match[2]);
-        }
+        std::ifstream lines(listing);std::string line;
+        result.sourceLines=parseAsmListing(lines,filename);
+        if(result.sourceLines.empty())
+            result.output+="\nWarning: no source addresses found in assembler listing. Source highlighting and breakpoints are unavailable.\n";
         for(const auto& entry:result.sourceLines)
             result.breakpointAddresses[entry.second].push_back(entry.first);
         // A label-only line names the following encoded line. Do not cross
